@@ -19,44 +19,114 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
-abbrev: "TODO - Abbreviation"
-category: info
+title: "ALFA 2.0 - the Abbreviated Language for Authorization"
+abbrev: "alfa-authz"
+category: std
+ipr: trust200902
 
-docname: draft-todo-yourname-protocol-latest
-submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
+docname: draft-brossard-alfa-authz-latest
+submissiontype: IETF 
 number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
+area: "Security"
+workgroup: "Web Authorization Protocol"
 keyword:
- - next generation
- - unicorn
- - sparkling distributed ledger
+ - authorization
+ - abac
+ - rebac
+ - rbac
+ - access control
+ - xacml
+ - policy language
 venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  group: "Web Authorization Protocol"
+  type: "Working Group"
+  mail: "oauth@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/oauth/"
+  github: "davidjbrossard/alfa-authorization-language"
+  latest: "https://davidjbrossard.github.io/alfa-authorization-language/draft-brossard-alfa-authz.html"
 
 author:
  -
-    fullname: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+    fullname: David Brossard
+    organization: Axiomatics
+    email: david.brossard@gmail.com
+    country: Canada
+ -
+    fullname: Andrew Clymer
+    organization: Rock Solid Knowledge
+    email: andy@rocksolidknowledge.com
+    country: United Kingdom
+ -
+    fullname: Theodosios Dimitrakos
+    organization: University of Kent School of Computing
+    email: t.dimitrakos@kent.ac.uk
 
 normative:
+  XACML:
+    target: https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html
+    title: eXtensible Access Control Markup Language (XACML) Version 3.0, OASIS Standard
+    date: January 2013
+    author:
+    -
+      name: Erik Rissanen
+      ins: E. Rissanen
+      org: Axiomatics AB
+  ABAC:
+    target: https://doi.org/10.6028/NIST.SP.800-162
+    title: Guide to Attribute Based Access Control (ABAC) Definition and Considerations - NIST Special Publication 800-162
+    date: January 2014
+    author:
+    -
+      name: Vincent Hu
+      ins: V. Hu
+      org: NIST
+    -
+      name: David Ferraiolo
+      ins: D. Ferraiolo
+      org: NIST
 
 informative:
+  RBAC:
+    target: https://doi.org/10.1145/344287.344301
+    title: "The NIST Model for Role-Based Access Control: Towards a Unified Standard"
+    date: July 26, 2000
+    author:
+    -
+      name: D. Richard Kuhn
+      ins: R. Kuhn
+      org: NIST
+    -
+      name: David Ferraiolo
+      ins: D. Ferraiolo
+      org: NIST
+    -
+      name: R. Sandhu
+      ins: R. Sandhu
+      org: NIST
+  ReBAC:
+    target: https://doi.org/10.1145/344287.344301
+    title: "Access Control Requirements for Web 2.0 Security and Privacy"
+    date: January 2007
+    author:
+    -
+      name: Carrie Gates
+      ins: C. Gates
+      org: CA Technologies
 
 
 --- abstract
 
-TODO Abstract
+The Abbreviated Language for Authorization 2.0 is a constrained policy language aimed at solving fine-grained
+authorization challenges. This specification builds on top of [XACML] and replaces [ALFA] to provide a more complete
+and easier language to use.
+
+Use cases for ALFA 2.0 include the ability to express:
+- Role-based access control ([RBAC]), 
+- Attribute-based access control ([ABAC]), and 
+- Relationship-based access control ([ReBAC])
 
 
 --- middle
@@ -86,4 +156,4 @@ This document has no IANA actions.
 # Acknowledgments
 {:numbered="false"}
 
-TODO acknowledge.
+The authors would like to acknowledge the authors of the original version of ALFA namely Pablo Giambiagi and Dr. Srijith Nair. The authors would also like to acknowledge Erik Rissanen, the then editor of the XACML Technical Committee.
