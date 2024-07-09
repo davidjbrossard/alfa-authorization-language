@@ -68,6 +68,7 @@ normative:
       org: NIST
 
 informative:
+  OAUTH: RFC6749
   RBAC:
     target: https://doi.org/10.1145/344287.344301
     title: "The NIST Model for Role-Based Access Control: Towards a Unified Standard"
@@ -94,6 +95,11 @@ informative:
       name: Carrie Gates
       ins: C. Gates
       org: CA Technologies
+  OPA:
+    target: https://www.openpolicyagent.org/docs/latest/
+    title: Open Policy Agent | Documentation
+    date: July 2024
+    author: Styra
 
 
 --- abstract
@@ -112,7 +118,16 @@ Use cases for ALFA 2.0 include the ability to express:
 
 # Introduction
 
-TODO Introduction
+While authentication has _largely_ been solved and standardized (see [OAUTH] and SAML as successful authentication standards), not as much can be said of authorization. One of the oldest and more mature standards is [XACML], the eXtensible Access Control Markup Language established in 2001 under the helm of OASIS. The latest version, XACML 3.0, was released in 2013.
+
+Since, there has been little innovation in the authorization space. Two standards emerged:
+
+- ALFA: Abbreviated Language for Authorization (ALFA) is a domain-specific language for a high-level description of XACML policies. It is designed with ease of use in mind, for use by XACML policy writers. ALFA provides the means to present domain specific information, such as attribute identifiers, in compact form and lays down the basic principle to compile policies expressed in ALFA into XACML 3.0 policies. ALFA does not bring new semantics to XACML. Anything that can be expressed in ALFA must be expressible in XACML. ALFA has been designed in such a way that lossless round-trip translations is possible.
+- OPA: Open Policy Agent is an open source, general-purpose policy engine that unifies policy enforcement across the stack. OPA provides a high-level declarative language that lets you specify policy as code and simple APIs to offload policy decision-making from your software. [OPA]
+
+While OPA became part of CNCF, ALFA remained as a draft under OASIS. OPA's strength is also its drawback. It's a fullblown Datalog-based programming language which can achieve anything: it's extremely broad. As for ALFA, as mentioned above, it's true to XACML and aims to achieve lossless round-trip translations leading to unnecessary complications in ALFA's existing grammar.
+
+The aim of this standard is to provide a simple and constrained authorization language largely inspired by ALFA but not tied to XACML and not limited by the need to provide round-tripping.
 
 
 # Conventions and Definitions
