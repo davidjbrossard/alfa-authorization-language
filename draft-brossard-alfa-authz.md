@@ -103,8 +103,8 @@ authorization challenges. This specification builds on top of [XACML] and replac
 and easier language to use.
 
 Use cases for ALFA 2.0 include the ability to express:
-- Role-based access control ([RBAC]), 
-- Attribute-based access control ([ABAC]), and 
+- Role-based access control ([RBAC]),
+- Attribute-based access control ([ABAC]), and
 - Relationship-based access control ([ReBAC])
 
 
