@@ -1,0 +1,215 @@
+
+
+
+
+Web Authorization Protocol                                   D. Brossard
+Internet-Draft                                                Axiomatics
+Intended status: Standards Track                               A. Clymer
+Expires: 10 January 2025                            Rock Solid Knowledge
+                                                           T. Dimitrakos
+                                  University of Kent School of Computing
+                                                             9 July 2024
+
+
+         ALFA 2.0 - the Abbreviated Language for Authorization
+                    draft-brossard-alfa-authz-latest
+
+Abstract
+
+   The Abbreviated Language for Authorization 2.0 is a constrained
+   policy language aimed at solving fine-grained authorization
+   challenges.  This specification builds on top of [XACML] and replaces
+   [ALFA] to provide a more complete and easier language to use.
+
+   Use cases for ALFA 2.0 include the ability to express: - Role-based
+   access control ([RBAC]), - Attribute-based access control ([ABAC]),
+   and - Relationship-based access control ([ReBAC])
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://davidjbrossard.github.io/alfa-authorization-language/draft-
+   brossard-alfa-authz.html.  Status information for this document may
+   be found at https://datatracker.ietf.org/doc/draft-brossard-alfa-
+   authz/.
+
+   Discussion of this document takes place on the Web Authorization
+   Protocol Working Group mailing list (mailto:oauth@ietf.org), which is
+   archived at https://mailarchive.ietf.org/arch/browse/oauth/.
+   Subscribe at https://www.ietf.org/mailman/listinfo/oauth/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/davidjbrossard/alfa-authorization-language.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 10 January 2025.
+
+Copyright Notice
+
+   Copyright (c) 2024 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Security Considerations
+   4.  IANA Considerations
+   5.  References
+     5.1.  Normative References
+     5.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   While authentication has _largely_ been solved and standardized (see
+   [OAUTH] and SAML as successful authentication standards), not as much
+   can be said of authorization.  One of the oldest and more mature
+   standards is [XACML], the eXtensible Access Control Markup Language
+   established in 2001 under the helm of OASIS.  The latest version,
+   XACML 3.0, was released in 2013.
+
+   Since, there has been little innovation in the authorization space.
+   Two standards emerged:
+
+   *  ALFA: Abbreviated Language for Authorization (ALFA) is a domain-
+      specific language for a high-level description of XACML policies.
+      It is designed with ease of use in mind, for use by XACML policy
+      writers.  ALFA provides the means to present domain specific
+      information, such as attribute identifiers, in compact form and
+      lays down the basic principle to compile policies expressed in
+      ALFA into XACML 3.0 policies.  ALFA does not bring new semantics
+      to XACML.  Anything that can be expressed in ALFA must be
+      expressible in XACML.  ALFA has been designed in such a way that
+      lossless round-trip translations is possible.
+
+   *  OPA: Open Policy Agent is an open source, general-purpose policy
+      engine that unifies policy enforcement across the stack.  OPA
+      provides a high-level declarative language that lets you specify
+      policy as code and simple APIs to offload policy decision-making
+      from your software.  [OPA]
+
+   While OPA became part of CNCF, ALFA remained as a draft under OASIS.
+   OPA's strength is also its drawback.  It's a fullblown Datalog-based
+   programming language which can achieve anything: it's extremely
+   broad.  As for ALFA, as mentioned above, it's true to XACML and aims
+   to achieve lossless round-trip translations leading to unnecessary
+   complications in ALFA's existing grammar.
+
+   The aim of this standard is to provide a simple and constrained
+   authorization language largely inspired by ALFA but not tied to XACML
+   and not limited by the need to provide round-tripping.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+3.  Security Considerations
+
+   TODO Security
+
+4.  IANA Considerations
+
+   This document has no IANA actions.
+
+5.  References
+
+5.1.  Normative References
+
+   [ABAC]     Hu, V. and D. Ferraiolo, "Guide to Attribute Based Access
+              Control (ABAC) Definition and Considerations - NIST
+              Special Publication 800-162", January 2014,
+              <https://doi.org/10.6028/NIST.SP.800-162>.
+
+   [ALFA]     Giambiagi, P., Nair, S. K., and D. Brossard, "Abbreviated
+              Language for Authorization Version 1.0", March 2015,
+              <https://groups.oasis-
+              open.org/higherlogic/ws/public/download/55228/alfa-for-
+              xacml-v1.0-wd01.doc>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [XACML]    Rissanen, E., "eXtensible Access Control Markup Language
+              (XACML) Version 3.0, OASIS Standard", January 2013,
+              <https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-
+              spec-os-en.html>.
+
+5.2.  Informative References
+
+   [OAUTH]    Hardt, D., Ed., "The OAuth 2.0 Authorization Framework",
+              RFC 6749, DOI 10.17487/RFC6749, October 2012,
+              <https://www.rfc-editor.org/rfc/rfc6749>.
+
+   [OPA]      Styra, "Open Policy Agent | Documentation", July 2024,
+              <https://www.openpolicyagent.org/docs/latest/>.
+
+   [RBAC]     Kuhn, R., Ferraiolo, D., and R. Sandhu, "The NIST Model
+              for Role-Based Access Control: Towards a Unified
+              Standard", July 2000,
+              <https://doi.org/10.1145/344287.344301>.
+
+   [ReBAC]    Gates, C., "Access Control Requirements for Web 2.0
+              Security and Privacy", January 2007,
+              <https://doi.org/10.1145/344287.344301>.
+
+Acknowledgments
+
+   The authors would like to acknowledge the authors of the original
+   version of ALFA namely Pablo Giambiagi and Dr. Srijith Nair.  The
+   authors would also like to acknowledge Erik Rissanen, the then editor
+   of the XACML Technical Committee.
+
+Authors' Addresses
+
+   David Brossard
+   Axiomatics
+   Canada
+   Email: david.brossard@gmail.com
+
+
+   Andrew Clymer
+   Rock Solid Knowledge
+   United Kingdom
+   Email: andy@rocksolidknowledge.com
+
+
+   Theodosios Dimitrakos
+   University of Kent School of Computing
+   Email: t.dimitrakos@kent.ac.uk
