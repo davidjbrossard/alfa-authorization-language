@@ -1,3 +1,4 @@
+---
 title: "ALFA 2.0 - the Abbreviated Language for Authorization"
 abbrev: "alfa-authz"
 category: std
