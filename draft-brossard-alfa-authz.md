@@ -100,8 +100,10 @@ informative:
     target: https://www.openpolicyagent.org/docs/latest/
     title: Open Policy Agent | Documentation
     date: July 2024
-    author: Styra
-
+    author:
+    -
+      name: Styra
+      org: Styra
 
 --- abstract
 
