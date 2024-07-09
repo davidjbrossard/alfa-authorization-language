@@ -5,7 +5,7 @@ category: std
 ipr: trust200902
 
 docname: draft-brossard-alfa-authz-latest
-submissiontype: IETF 
+submissiontype: IETF
 number:
 date:
 consensus: true
@@ -67,6 +67,21 @@ normative:
       name: David Ferraiolo
       ins: D. Ferraiolo
       org: NIST
+  ALFA:
+    target: https://groups.oasis-open.org/higherlogic/ws/public/download/55228/alfa-for-xacml-v1.0-wd01.doc
+    title: Abbreviated Language for Authorization Version 1.0
+    date: 10 March 2015
+    author:
+    -
+      name: Pablo Giambiagi
+      org: Axiomatics
+    -
+      name: Srijith K. Nair
+      org: Axiomatics
+    -
+      name: David Brossard
+      org: Axiomatics
+
 
 informative:
   OAUTH: RFC6749
