@@ -5,10 +5,10 @@
 Web Authorization Protocol                                   D. Brossard
 Internet-Draft                                                Axiomatics
 Intended status: Standards Track                               A. Clymer
-Expires: 10 January 2025                            Rock Solid Knowledge
+Expires: 23 January 2025                            Rock Solid Knowledge
                                                            T. Dimitrakos
                                   University of Kent School of Computing
-                                                             9 July 2024
+                                                            22 July 2024
 
 
          ALFA 2.0 - the Abbreviated Language for Authorization
@@ -58,7 +58,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 January 2025.
+   This Internet-Draft will expire on 23 January 2025.
 
 Copyright Notice
 
