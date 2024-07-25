@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-23T01:25:42.589301+00:00",
+  "timestamp": "2024-07-25T01:25:28.021697+00:00",
   "repo": "davidjbrossard/alfa-authorization-language",
   "labels": [
     {
@@ -49,6 +49,71 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDOMTtPW86Qg-gD",
+      "title": "Shared conditions",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/1",
+      "state": "OPEN",
+      "author": "andrewclymer",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Repeating the same boolean logic throughout a policy is not only tedious but, from a maintenance perspective, does not scale.\r\n\r\nFrom a runtime perspective, it would be great not to repeat the execution of the same condition across policy decisions. \r\n\r\nConsider the following ALFA\r\n```\r\npolicy doorAccess {\r\n        target clause ResourceType == \"door\" and Action == \"open\"\r\n        apply denyUnlessPermit\r\n\r\n        // Employees can open the door during office hours only\r\n        rule mainDoor {\r\n            target clause Resource == \"mainDoor\"\r\n            permit\r\n            condition Subject.Role == 'employee' and\r\n                      CurrentTime >= \"08:00:00\":time and\r\n                      CurrentTime < \"18:00:00\":time\r\n        }\r\n    }\r\n```\r\n\r\nThe use of office opening hours could be part of a shared condition.\r\n\r\n```\r\n\r\ncondition IsOfficeOpen  CurrentTime >= \"08:00:00\":time &&   CurrentTime < \"18:00:00\":time\r\n\r\npolicy doorAccess {\r\n        target clause ResourceType == \"door\" && Action == \"open\"\r\n        apply denyUnlessPermit\r\n\r\n        // Employees can open the door during office hours only\r\n        rule mainDoor {\r\n            target clause Resource == \"mainDoor\"\r\n            permit\r\n            condition Subject.Role == 'employee' and IsOfficeOpen\r\n        }\r\n    }\r\n```\r\nUsing shared conditions allows the runtime to cache the result of a shared condition. Reducing the execution overhead.\r\n\r\nSome ALFA conditions can look complex, especially when multiple functions are called. The use of shared conditions increases the readability of ALFA and allows a clean separation between developers and policy builders. Developers can create shared conditions, and policy builders can create high-order conditions by combining shared conditions with boolean operators (and, or, not). This results in a form of ALFA that is\r\n\r\n- More readable\r\n- Possibility to execute faster when used multiple times in a policy evaluation\r\n- More maintainable \r\n\r\nThere is an argument to make conditions general-purpose expressions so they can return any result type, not just boolean. Keeping the contract to just boolean expressions creates a level of policy building that does not require deep technical knowledge. If policy conditions were built using shared expressions (return any type), a developer's refactor of the shared expression could break various policies, resulting in an error in the consumer of the shared expression, not in the author of the shared condition. A strong boolean contract prevents this from happening. This is not dissimilar to shared rules, which can only produce a permit or deny.\r\n\r\n\r\n\r\n\r\n",
+      "createdAt": "2024-07-23T08:16:01Z",
+      "updatedAt": "2024-07-23T08:16:01Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 2,
+      "id": "I_kwDOMTtPW86QlIKo",
+      "title": "Case insensitive string matching",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/2",
+      "state": "OPEN",
+      "author": "andrewclymer",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "ALFA string comparisons using operators are case-sensitive. \r\n\r\nThe following expression is only true if the department has any value of \"engineering\" it will not be true for \"Engineering\"\r\n```\r\ndepartment == \"engineering\"\r\n```\r\n\r\n\r\nMany scenarios don't require this level of exact matching, so the condition has to use a function that performs the equality without being concerned by case.\r\n\r\n```\r\nIsEqualIgnoreCase(department,\"engineering\")\r\n```\r\n\r\nSuggest having a runtime option to make operator equality ignore case. This could be achieved by introducing an alfa.config file in the Policy Store.\r\n```\r\n{\r\n   \"stringEqualityIgnoreCase\" : true\r\n}\r\n```\r\n\r\nThere could be other runtime configuration options moving forward",
+      "createdAt": "2024-07-23T16:44:26Z",
+      "updatedAt": "2024-07-23T16:44:26Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 3,
+      "id": "I_kwDOMTtPW86QpsCP",
+      "title": "implicit attribute id",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/3",
+      "state": "OPEN",
+      "author": "andrewclymer",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "When defining an attribute in ALFA, the PIP (Policy Information Point) id of the attribute is often the same name as the attribute in ALFA\r\n\r\n```\r\nattribute department { type=string category=resourceCat id=\"department\" }\r\n```\r\n\r\nSuggest making the id optional. The value will be implicitly assigned based on the attribute name. Resulting in both code blocks having the equivalent functionality.\r\n\r\n```\r\nattribute department { type=string category=resourceCat  }\r\n```\r\n",
+      "createdAt": "2024-07-24T07:51:47Z",
+      "updatedAt": "2024-07-24T07:51:47Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 4,
+      "id": "I_kwDOMTtPW86Qp94d",
+      "title": "Attribute Cardinality",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/4",
+      "state": "OPEN",
+      "author": "andrewclymer",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Attributes may contain 0 to many values, known as a bag. When using operators or functions that can only take a single value, the policy author may write less-than-ideal code.\r\n\r\n```\r\ncondition Single(netTotal) + Single(taxTotal) > 100\r\n```\r\n\r\nIdeally, the author would like to write.\r\n```\r\ncondition netTotal + taxTotal > 100\r\n```\r\n\r\n### Suggestions\r\n\r\n#### Implicit conversion \r\nWhen using an attribute where a single value is expected, and the attribute only has a single value, implicitly convert it. If the attribute has many or zero values, return an indeterminate decision. \r\n\r\n#### Attributes defined as single value\r\n\r\nDefine the attribute with a must-have cardinality of 1.\r\n\r\n```\r\nattribute netTotal { type=double category=resourceCat single }\r\n```\r\n\r\nThe attribute can then be used with operators that take a single value or a bag of values (implicitly converted to a bag of 1). If the attribute has zero values, return an indeterminate decision. \r\n\r\n",
+      "createdAt": "2024-07-24T08:29:07Z",
+      "updatedAt": "2024-07-24T08:29:07Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": []
 }
