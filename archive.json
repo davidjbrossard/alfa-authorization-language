@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-28T01:37:51.710301+00:00",
+  "timestamp": "2024-07-30T01:26:02.868589+00:00",
   "repo": "davidjbrossard/alfa-authorization-language",
   "labels": [
     {
@@ -108,9 +108,57 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "Attributes may contain 0 to many values, known as a bag. When using operators or functions that can only take a single value, the policy author may write less-than-ideal code.\r\n\r\n```\r\ncondition Single(netTotal) + Single(taxTotal) > 100\r\n```\r\n\r\nIdeally, the author would like to write.\r\n```\r\ncondition netTotal + taxTotal > 100\r\n```\r\n\r\n### Suggestions\r\n\r\n#### Implicit conversion \r\nWhen using an attribute where a single value is expected, and the attribute only has a single value, implicitly convert it. If the attribute has many or zero values, return an indeterminate decision. \r\n\r\n#### Attributes defined as single value\r\n\r\nDefine the attribute with a must-have cardinality of 1.\r\n\r\n```\r\nattribute netTotal { type=double category=resourceCat single }\r\n```\r\n\r\nThe attribute can then be used with operators that take a single value or a bag of values (implicitly converted to a bag of 1). If the attribute has zero values, return an indeterminate decision. \r\n\r\n",
+      "body": "Attributes may contain 0 to many values, known as a bag. When using operators or functions that can only take a single value, the policy author may write less-than-ideal code.\r\n\r\n```\r\ncondition Single(netTotal) + Single(taxTotal) > 100\r\n```\r\n\r\nIdeally, the author would like to write.\r\n```\r\ncondition netTotal + taxTotal > 100\r\n```\r\n\r\n### Suggestions\r\n\r\n#### Attributes defined as single value\r\n\r\nDefine the attribute with a must-have cardinality of 1.\r\n\r\n```\r\nattribute single netTotal { type=double category=resourceCat  }\r\n```\r\n\r\nThis attribute can then be used with operators that take a single value or a bag of values (implicitly converted to a bag of 1). If the attribute has zero values, return an indeterminate decision. \r\n\r\n",
       "createdAt": "2024-07-24T08:29:07Z",
-      "updatedAt": "2024-07-24T08:29:07Z",
+      "updatedAt": "2024-07-29T14:55:18Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 5,
+      "id": "I_kwDOMTtPW86REvCY",
+      "title": "Complex Attributes",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/5",
+      "state": "OPEN",
+      "author": "andrewclymer",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Attributes are bags of single values. \r\n\r\nInteger, double, boolean, string, date, time and dateTime\r\n\r\nScenarios exist that require each attribute bag item to contain multiple values.\r\n\r\nWhen modelling a user's set of specific permissions, having each attribute value contain both an action and the resource to which the action can be applied would be advantageous.\r\n\r\n### Suggestion\r\n\r\n```\r\ntype permission {\r\n  Action:string,\r\n  ResourceType:string\r\n}\r\n\r\nattribute userPermissions { type = permission , category=resourceCat}\r\n```\r\nPIPs would then return a bag of values, each containing an Action and a ResourceType.\r\n\r\n\r\n#### Reasoning with complex attributes\r\n\r\nConsider the following ALFA\r\n\r\n```\r\ncondition userPermissions.Action == \"update\" and userPermissions.ResourceType == \"PurchaseOrders\"\r\n```\r\n\r\nwhere the userPersmissions bag is as follows ( Note shown in JSON, but there is no requirement for an ALFA implementation to serialise/deserialize JSON).\r\n\r\n```\r\n[ { Action:[\"UPDATE\"] , ResourceType:[\"Profile\",\"Photo\"] } ,\r\n  {Action:[\"READ\"],ResourceType[\"PurchaseOrder\"] }\r\n]\r\n```\r\n\r\nThis condition would be evaluated to true, as Permissions has an Action attribute set to UPDATE and a ResourceType Attribute set to PurchaseOrder. The intent is only to produce true if a single instance of the Permissions attribute has Action = \"UPDATE\" and ResourceType = \"PurchaseOrder\"\r\n\r\nTo solve this problem, we could consider the use pattern-matching style syntax\r\n\r\n```\r\ncondition Permissions[Action == \"UPDATE\"].ResourceType == \"PurchaseOrder\"\r\n```\r\n\r\nThe pattern-matching syntax is used to filter the attribute values. The above statement would only evaluate to true if the bag contained an item where the Action was UPDATE and ResourceType is \"PurchaseOrder\"\r\n\r\nMultiple expressions can be contained inside the [ ] operator.\r\n\r\n```\r\ncondition Permissions[Action == \"open\" and ResourceType==\"door\" ].Resource == \"MainDoor\"\r\n```\r\nThe use of [] operator does make ALFA less readable, however, combine this with shared conditions and developers could create a shared condition of CanOpenMainDoor\r\n\r\n```\r\ncondition CanOpenMainDoor Permissions[Action == \"open\" and ResourceType==\"door\" ].Resource == \"MainDoor\"\r\n. . .\r\n\r\npolicy DoorAccess \r\n{\r\n     apply firstApplicable\r\n     target clause ResourceType==\"door\" and Action ==\"open\"\r\n     rule {\r\n      condition CanOpenMainDoor\r\n      permit\r\n    }\r\n}\r\n```\r\n\r\n#### Questions\r\n\r\nDo we allow complex attributes to be made up of other complex attributes? \r\n\r\n",
+      "createdAt": "2024-07-28T13:40:14Z",
+      "updatedAt": "2024-07-29T16:04:59Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 6,
+      "id": "I_kwDOMTtPW86RFWWo",
+      "title": "Money type",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/6",
+      "state": "OPEN",
+      "author": "andrewclymer",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "ALFA has an attribute type of double, but many platforms have a different type for dealing with currency that has increased precision.\r\n\r\nSuggest introducing a new type in ALFA called money\r\n\r\n```\r\nattribute cost { id=cost type=money category=resourceCat }\r\n```\r\n\r\n\r\n",
+      "createdAt": "2024-07-28T20:28:02Z",
+      "updatedAt": "2024-07-29T14:56:35Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 7,
+      "id": "I_kwDOMTtPW86RFXNH",
+      "title": "Constants",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/7",
+      "state": "OPEN",
+      "author": "andrewclymer",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Good programming languages provide developers with tools allowing them not to repeat themselves (COPY+PASTE); if a piece of logic changes, it may have to change in many places. \r\n\r\nFor example, the membership level attribute denotes a subscription level. \r\n\r\nBronze = 1\r\nSliver = 2\r\nGold = 3\r\n\r\n```\r\ncondition MembershipLevel > 1  // Allow Silver and above\r\n```\r\n\r\nThere may be multiple places in the policies wishing to do this kind of logic.\r\n\r\n#### Suggestion\r\n\r\nIntroduce defined constants\r\n\r\n```\r\nnamespace AmceHealth\r\n{\r\n define BronzeLevel = 1\r\n define SilverLevel = 2\r\n define GoldLevel = 3\r\n\r\n define Gym = \u201cgym\u201d\r\n define OpeningTime = \u201c09:00\u201d:time\r\n define ClosingTime = \u201c18:00\u201d:time\r\n\r\n\r\n attribute MembershipLevel {type=integer, category=SubjectCat}\r\n\r\n policy HealthClub\r\n {\r\n   rule {\r\n     deny condition not MembershipLevel > BronzeLevel\r\n   }\r\n\r\n   rule {\r\n \ttarget clause Action == \u201cbook\u201d and ResourceType == Gym\r\n \tpermit condition MembershipLevel > BronzeLevel\r\n   }\r\n } \r\n}\r\n```\r\n\r\nOther keyword suggestions other than **define** are\r\n- const\r\n- constant\r\n- let\r\n",
+      "createdAt": "2024-07-28T20:39:34Z",
+      "updatedAt": "2024-07-29T15:00:22Z",
       "closedAt": null,
       "comments": []
     }
