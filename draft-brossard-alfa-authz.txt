@@ -5,10 +5,10 @@
 Web Authorization Protocol                                   D. Brossard
 Internet-Draft                                                Axiomatics
 Intended status: Standards Track                               A. Clymer
-Expires: 10 January 2025                            Rock Solid Knowledge
+Expires: 7 April 2025                               Rock Solid Knowledge
                                                            T. Dimitrakos
                                   University of Kent School of Computing
-                                                             9 July 2024
+                                                          4 October 2024
 
 
          ALFA 2.0 - the Abbreviated Language for Authorization
@@ -58,7 +58,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 January 2025.
+   This Internet-Draft will expire on 7 April 2025.
 
 Copyright Notice
 
@@ -77,12 +77,18 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-   2.  Conventions and Definitions
-   3.  Security Considerations
-   4.  IANA Considerations
-   5.  References
-     5.1.  Normative References
-     5.2.  Informative References
+   2.  General Considerations
+   3.  Policy Language
+     3.1.  Overview
+     3.2.  Elements
+   4.  Request / Response Protocol
+   5.  Appendix
+   6.  Conventions and Definitions
+   7.  Security Considerations
+   8.  IANA Considerations
+   9.  References
+     9.1.  Normative References
+     9.2.  Informative References
    Acknowledgments
    Authors' Addresses
 
@@ -126,7 +132,55 @@ Table of Contents
    authorization language largely inspired by ALFA but not tied to XACML
    and not limited by the need to provide round-tripping.
 
-2.  Conventions and Definitions
+2.  General Considerations
+
+   The model put forth by this specification follows the same approach
+   as OASIS ALFA 1.0 [ALFA] and OASIS XACML 3.0 [XACML].  It departs
+   from both these languages by being more lightweight and simpler.
+   ALFA 2.0 can be used in a broader set of environments especially
+   internet protocols and devices, constrained environments and is
+   developer-friendly, i.e. it can be written by hand.
+
+   One of the goals of ALFA 2.0 is also to become more relevant to
+   existing standards such as:
+
+   *  OAuth
+
+   *  Authentication and Authorization for Constrained Environments
+      (ace)
+
+   *  SCIM
+
+3.  Policy Language
+
+3.1.  Overview
+
+   (lift the diagram from https://groups.oasis-
+   open.org/higherlogic/ws/public/download/55228/alfa-for-xacml-v1.0-
+   wd01.doc/latest)
+
+3.2.  Elements
+
+   *  Namespace
+
+   *  Policy
+
+   *  Target
+
+   *  Condition
+
+   *  Combining Algorithm
+
+4.  Request / Response Protocol
+
+   This profile purposely does not define a request/response protocol.
+   Both the JSON Profile of XACML and the Authorization API 1.0 – draft
+   01 of Open ID may be used to send an authorization request and
+   produce a decision.
+
+5.  Appendix
+
+6.  Conventions and Definitions
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
@@ -134,17 +188,17 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-3.  Security Considerations
+7.  Security Considerations
 
    TODO Security
 
-4.  IANA Considerations
+8.  IANA Considerations
 
    This document has no IANA actions.
 
-5.  References
+9.  References
 
-5.1.  Normative References
+9.1.  Normative References
 
    [ABAC]     Hu, V. and D. Ferraiolo, "Guide to Attribute Based Access
               Control (ABAC) Definition and Considerations - NIST
@@ -167,11 +221,11 @@ Table of Contents
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
    [XACML]    Rissanen, E., "eXtensible Access Control Markup Language
-              (XACML) Version 3.0, OASIS Standard", January 2013,
+              (XACML) Version 3.0, OASIS Standard", July 2017,
               <https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-
-              spec-os-en.html>.
+              spec-en.html>.
 
-5.2.  Informative References
+9.2.  Informative References
 
    [OAUTH]    Hardt, D., Ed., "The OAuth 2.0 Authorization Framework",
               RFC 6749, DOI 10.17487/RFC6749, October 2012,
