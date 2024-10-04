@@ -149,7 +149,7 @@ The aim of this standard is to provide a simple and constrained authorization la
 
 # General Considerations
 
-The model put forth by this specification follows the same approach as OASIS ALFA 1.0 [ALFA] and OASIS XACML 3.0 [XACML]. It departs from both these languages by being more lightweight and simpler. ALFA 2.0 can be used in a broader set of environments especially constrained environments and is developer-friendly, i.e. it can be written by hand.
+The model put forth by this specification follows the same approach as OASIS ALFA 1.0 [ALFA] and OASIS XACML 3.0 [XACML]. It departs from both these languages by being more lightweight and simpler. ALFA 2.0 can be used in a broader set of environments especially internet protocols and devices, constrained environments and is developer-friendly, i.e. it can be written by hand.
 
 One of the goals of ALFA 2.0 is also to become more relevant to existing standards such as:
 
@@ -159,11 +159,24 @@ One of the goals of ALFA 2.0 is also to become more relevant to existing standar
 
 # Policy Language
 
+## Overview
+
+(lift the diagram from https://groups.oasis-open.org/higherlogic/ws/public/download/55228/alfa-for-xacml-v1.0-wd01.doc/latest)
+
+## Elements
+
+ - Namespace
+ - Policy
+ - Target
+ - Condition
+ - Combining Algorithm
 
 
 # Request / Response Protocol
 
 This profile purposely does not define a request/response protocol. Both the JSON Profile of XACML and the Authorization API 1.0 – draft 01 of Open ID may be used to send an authorization request and produce a decision.
+
+# Appendix
 
 # Conventions and Definitions
 
