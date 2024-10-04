@@ -46,9 +46,9 @@ author:
 
 normative:
   XACML:
-    target: https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html
+    target: https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-en.html
     title: eXtensible Access Control Markup Language (XACML) Version 3.0, OASIS Standard
-    date: January 2013
+    date: 12 July 2017
     author:
     -
       name: Erik Rissanen
@@ -147,6 +147,23 @@ While OPA became part of CNCF, ALFA remained as a draft under OASIS. OPA's stren
 
 The aim of this standard is to provide a simple and constrained authorization language largely inspired by ALFA but not tied to XACML and not limited by the need to provide round-tripping.
 
+# General Considerations
+
+The model put forth by this specification follows the same approach as OASIS ALFA 1.0 [ALFA] and OASIS XACML 3.0 [XACML]. It departs from both these languages by being more lightweight and simpler. ALFA 2.0 can be used in a broader set of environments especially constrained environments and is developer-friendly, i.e. it can be written by hand.
+
+One of the goals of ALFA 2.0 is also to become more relevant to existing standards such as:
+
+ - OAuth
+ - Authentication and Authorization for Constrained Environments (ace)
+ - SCIM
+
+# Policy Language
+
+
+
+# Request / Response Protocol
+
+This profile purposely does not define a request/response protocol. Both the JSON Profile of XACML and the Authorization API 1.0 – draft 01 of Open ID may be used to send an authorization request and produce a decision.
 
 # Conventions and Definitions
 
