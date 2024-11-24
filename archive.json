@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-11-21T01:48:07.809548+00:00",
+  "timestamp": "2024-11-24T01:54:47.521911+00:00",
   "repo": "davidjbrossard/alfa-authorization-language",
   "labels": [
     {
@@ -125,7 +125,7 @@
     {
       "number": 5,
       "id": "I_kwDOMTtPW86REvCY",
-      "title": "Complex Attributes",
+      "title": "Structured Attribute Datatype",
       "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/5",
       "state": "OPEN",
       "author": "andrewclymer",
@@ -134,7 +134,7 @@
       "labels": [],
       "body": "Attributes are bags of single values. \r\n\r\nInteger, double, boolean, string, date, time and dateTime\r\n\r\nScenarios exist that require each attribute bag item to contain multiple values.\r\n\r\nWhen modelling a user's set of specific permissions, having each attribute value contain both an action and the resource to which the action can be applied would be advantageous.\r\n\r\n### Suggestion\r\n\r\n```\r\ntype permission {\r\n  Action:string\r\n  ResourceType:string\r\n}\r\n\r\nattribute userPermissions { type = permission  category=resourceCat}\r\n```\r\nPIPs would then return a bag of values, each containing an Action and a ResourceType.\r\n\r\n\r\n#### Reasoning with complex attributes\r\n\r\nConsider the following ALFA\r\n\r\n```\r\ncondition userPermissions.Action == \"update\" and userPermissions.ResourceType == \"PurchaseOrders\"\r\n```\r\n\r\nWhere the userPersmissions bag is as follows ( Note: this example is shown in JSON, but there is no requirement for an ALFA implementation to serialise/deserialize JSON).\r\n\r\n```\r\n[ { Action:[\"UPDATE\"] , ResourceType:[\"Profile\",\"Photo\"] } ,\r\n  {Action:[\"READ\"],ResourceType[\"PurchaseOrder\"] }\r\n]\r\n```\r\n\r\nThis condition would be evaluated to true, as Permissions has an Action attribute set to UPDATE and a ResourceType Attribute set to PurchaseOrder. The intent is only to produce true if a single instance of the Permissions attribute has Action = \"UPDATE\" and ResourceType = \"PurchaseOrder\"\r\n\r\nTo solve this problem, we could consider the use pattern-matching style syntax\r\n\r\n```\r\ncondition Permissions[Action == \"UPDATE\"].ResourceType == \"PurchaseOrder\"\r\n```\r\n\r\nThe pattern-matching syntax is used to filter the attribute values. The above statement would only evaluate to true if the bag contained an item where the Action was UPDATE and ResourceType is \"PurchaseOrder\"\r\n\r\nMultiple expressions can be contained inside the [ ] operator.\r\n\r\n```\r\ncondition Permissions[Action == \"open\" and ResourceType==\"door\" ].Resource == \"MainDoor\"\r\n```\r\nThe use of [] operator does make ALFA less readable, however, combine this with shared conditions and developers could create a shared condition of CanOpenMainDoor\r\n\r\n```\r\ncondition CanOpenMainDoor Permissions[Action == \"open\" and ResourceType==\"door\" ].Resource == \"MainDoor\"\r\n. . .\r\n\r\npolicy DoorAccess \r\n{\r\n     apply firstApplicable\r\n     target clause ResourceType==\"door\" and Action ==\"open\"\r\n     rule {\r\n      condition CanOpenMainDoor\r\n      permit\r\n    }\r\n}\r\n```\r\n\r\n#### Questions\r\n\r\nDo we allow complex attributes to be made up of other complex attributes? \r\n\r\n",
       "createdAt": "2024-07-28T13:40:14Z",
-      "updatedAt": "2024-08-20T15:35:37Z",
+      "updatedAt": "2024-11-21T17:45:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -158,9 +158,17 @@
       "labels": [],
       "body": "ALFA has an attribute type of double, but many platforms have a different type for dealing with currency that has increased precision.\r\n\r\nSuggest introducing a new type in ALFA called money\r\n\r\n```\r\nattribute cost { id=cost type=money category=resourceCat }\r\n```\r\n\r\n\r\n",
       "createdAt": "2024-07-28T20:28:02Z",
-      "updatedAt": "2024-07-29T14:56:35Z",
+      "updatedAt": "2024-11-21T17:53:13Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "davidjbrossard",
+          "authorAssociation": "OWNER",
+          "body": "Oddly, XACML does not define decimal as one of its datatypes (although xs:decimal is mentioned in the context of XPath). The only numerical datatypes are double and integer. We should add support for decimal at least in ALFA but even suggest to the XACML TC that decimal be added.",
+          "createdAt": "2024-11-21T17:53:12Z",
+          "updatedAt": "2024-11-21T17:53:12Z"
+        }
+      ]
     },
     {
       "number": 7,
@@ -190,9 +198,17 @@
       "labels": [],
       "body": "\r\nThe following obligation assigns the Action attribute to the obligation with the same value as the Action attribute has in the current context.\r\n\r\n```\r\n   on permit\r\n        {\r\n            obligation Audit\r\n            {\r\n                When = CurrentDateTime\r\n                Who = Subject.Email\r\n                Description = \"Accessed the Purchase Order system\"\r\n                Action = Action\r\n            }\r\n        }\r\n```\r\n\r\nSuggest simplifying to\r\n\r\n```\r\n   on permit\r\n        {\r\n            obligation Audit\r\n            {\r\n                When = CurrentDateTime\r\n                Who = Subject.Email\r\n                Description = \"Accessed the Purchase Order system\"\r\n                Action \r\n            }\r\n        }\r\n```\r\n",
       "createdAt": "2024-08-06T15:31:54Z",
-      "updatedAt": "2024-08-06T15:31:54Z",
+      "updatedAt": "2024-11-21T17:31:17Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "davidjbrossard",
+          "authorAssociation": "OWNER",
+          "body": "Agreed. The annoying thing with advice/obligations is to have to specify the name of the placeholder even when the content itself could be used as the name of the placeholder (Action = Action vs Action).",
+          "createdAt": "2024-11-21T17:31:15Z",
+          "updatedAt": "2024-11-21T17:31:15Z"
+        }
+      ]
     },
     {
       "number": 9,
@@ -230,7 +246,7 @@
       "labels": [],
       "body": "ALFA, like XACML, has a 3-level structure:\r\n- PolicySet\r\n- Policy\r\n- Rule\r\n\r\nALFA 2.0 aims to simplify into Policy only. Rule and PolicySet are folded into Policy. Combining algorithms are updated accordingly.",
       "createdAt": "2024-08-06T16:11:23Z",
-      "updatedAt": "2024-08-07T08:08:15Z",
+      "updatedAt": "2024-11-22T14:18:55Z",
       "closedAt": null,
       "comments": [
         {
@@ -239,6 +255,117 @@
           "body": "I can see how a policy could contain rules and references to other policies, but I need clarification on how you can remove the rules.",
           "createdAt": "2024-08-07T08:08:13Z",
           "updatedAt": "2024-08-07T08:08:13Z"
+        },
+        {
+          "author": "TheoDimitrakos",
+          "authorAssociation": "COLLABORATOR",
+          "body": "suggestion - need to copy detail from slack \r\n\r\n1 A policy is a structure (complex attribute)  consisting of \r\n1.1\tTarget  where the assigned value is a selector function (prefer boolean condition as in our implementation but in xacml it is a matching function) \r\n1.2\tCondition where the assigned value is a boolean function  \r\n1.3\tEffect where the assigned value is PERMIT, DENY or the value of the Evaluation Constructor that takes as input a policy combination algorithm and a collection of policies \r\n1.4\tObligations are assignments of obligation instructions on Effect values\r\nOptionally add \r\n1.5       policy issuance characteristics (bag of attributes about issuer, level of assurance, etc) \r\n\r\n\r\n2\tThe evaluation function constructor takes a policy and produces and Effect value and an array of obligations associated with this effect. It is defined as follows \r\n2.1\t\u2013an evaluation function of an atomic policy is \r\n2.1.1\tINAPPLICABLE if the selector assignment does not hold\r\n2.1.2\tINAPPLICABLE if the selector assignment hold but the condition does not hold \r\n2.1.3\tThe value specified in Effect if both selector assignment and condition hold  \r\n2.1.4\tINDETERMINATE if the evaluation function fails to compute (e.g. due to undefined attribute values, etc.)    \r\n2.2\t\u2013 an evaluation function of a composite policy is composition of subordinate evaluation functions in accordance to declared policy combination algorithm \r\n\r\nIdeally we should have proper typic and namespace management for policies \r\nIeeally PERMIT, DENY could be values that are specific to authoirzation and in general someon could define values other than PERMIT or DENY as long as policy combination algorithms are updated accordingly.  The only fixed values of desion shoud be inherited from the evaluator constructur definition and be NOT APPLICABLE (meaning skip) and  INDETERMINATE  (meaning undefined) \r\n",
+          "createdAt": "2024-11-22T14:18:53Z",
+          "updatedAt": "2024-11-22T14:18:53Z"
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "id": "I_kwDOMTtPW86fwZx8",
+      "title": "Default combining algorithm",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/11",
+      "state": "CLOSED",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Introduce a default combining algorithm and stop requiring one be provided: let\u2019s use either \u2018first-applicable\u2019 or \u2018deny-overrides\u2019",
+      "createdAt": "2024-11-21T17:17:30Z",
+      "updatedAt": "2024-11-21T17:18:14Z",
+      "closedAt": "2024-11-21T17:18:14Z",
+      "comments": [
+        {
+          "author": "davidjbrossard",
+          "authorAssociation": "OWNER",
+          "body": "We decided against an invisible default combining algorithm for now.",
+          "createdAt": "2024-11-21T17:17:52Z",
+          "updatedAt": "2024-11-21T17:17:52Z"
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "id": "I_kwDOMTtPW86fwbVK",
+      "title": "Overload all functions: get rid of typeEquals and replace with overloaded method equals (less than, gt, \u2026)",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/12",
+      "state": "OPEN",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "For instance we have 2 functions:\r\n\r\n- booleanAtLeastOneMemberOf\r\n- anyURIAtLeastOneMemberOf\r\n\r\nthat relate to being members. We should just have one method (atLeastOneMemberOf) regardless of type.\r\n\r\n\r\n",
+      "createdAt": "2024-11-21T17:20:39Z",
+      "updatedAt": "2024-11-21T17:20:40Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 13,
+      "id": "I_kwDOMTtPW86fwcti",
+      "title": "Rename common functions to use developer-friendly names",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/13",
+      "state": "OPEN",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Rename common functions to use developer-friendly names e.g.:\r\n`stringNormalizeToLowerCase` should be renamed to `toLower` or `lower`.\r\n\r\nThe entire list of function names can be found in system.alfa in the ALFA Plugin for VS Code.",
+      "createdAt": "2024-11-21T17:23:39Z",
+      "updatedAt": "2024-11-21T17:23:40Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 14,
+      "id": "I_kwDOMTtPW86fwev1",
+      "title": "Get rid of advice",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/14",
+      "state": "CLOSED",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "XACML and ALFA both define:\r\n- advice\r\n- obligation\r\nBoth elements are identical in structure and content but differ in intent: the PEP must comply with an obligation while it may comply with an advice. To simplify the language we could keep obligation and add a boolean flag that tells the PEP whether it has to understand and process the obligation. ",
+      "createdAt": "2024-11-21T17:28:05Z",
+      "updatedAt": "2024-11-21T17:28:37Z",
+      "closedAt": "2024-11-21T17:28:37Z",
+      "comments": [
+        {
+          "author": "davidjbrossard",
+          "authorAssociation": "OWNER",
+          "body": "Switching from 2 elements (advice and obligation) to a single one with a new parameter (the flag) is too much work for now and not worth it. We can revisit later.",
+          "createdAt": "2024-11-21T17:28:37Z",
+          "updatedAt": "2024-11-21T17:28:37Z"
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "id": "I_kwDOMTtPW86fwt9c",
+      "title": "Simplify bag to atomic value syntax",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/15",
+      "state": "OPEN",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "![image](https://github.com/user-attachments/assets/a9d856ba-7dcf-47b0-abde-5630c54e26d9)\r\n\r\n**Example**:\r\n\r\n- `map(function[stringNormalizeToLowerCase],user.region)`\r\n- Just do: `lower(user.region)`  Or\u2026 `user.region.toLower()`\r\n",
+      "createdAt": "2024-11-21T17:38:34Z",
+      "updatedAt": "2024-11-21T17:44:09Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "davidjbrossard",
+          "authorAssociation": "OWNER",
+          "body": "Also: review higher-order functions and offer reasonably named alternatives and syntactic sugar e.g. `user.region.equals(doc.regions)`",
+          "createdAt": "2024-11-21T17:44:07Z",
+          "updatedAt": "2024-11-21T17:44:07Z"
         }
       ]
     }
