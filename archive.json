@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-11-26T01:50:01.282479+00:00",
+  "timestamp": "2024-11-28T01:51:16.406342+00:00",
   "repo": "davidjbrossard/alfa-authorization-language",
   "labels": [
     {
@@ -246,7 +246,7 @@
       "labels": [],
       "body": "ALFA, like XACML, has a 3-level structure:\r\n- PolicySet\r\n- Policy\r\n- Rule\r\n\r\nALFA 2.0 aims to simplify into Policy only. Rule and PolicySet are folded into Policy. Combining algorithms are updated accordingly.",
       "createdAt": "2024-08-06T16:11:23Z",
-      "updatedAt": "2024-11-22T14:18:55Z",
+      "updatedAt": "2024-11-27T10:32:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -262,6 +262,20 @@
           "body": "suggestion - need to copy detail from slack \r\n\r\n1 A policy is a structure (complex attribute)  consisting of \r\n1.1\tTarget  where the assigned value is a selector function (prefer boolean condition as in our implementation but in xacml it is a matching function) \r\n1.2\tCondition where the assigned value is a boolean function  \r\n1.3\tEffect where the assigned value is PERMIT, DENY or the value of the Evaluation Constructor that takes as input a policy combination algorithm and a collection of policies \r\n1.4\tObligations are assignments of obligation instructions on Effect values\r\nOptionally add \r\n1.5       policy issuance characteristics (bag of attributes about issuer, level of assurance, etc) \r\n\r\n\r\n2\tThe evaluation function constructor takes a policy and produces and Effect value and an array of obligations associated with this effect. It is defined as follows \r\n2.1\t\u2013an evaluation function of an atomic policy is \r\n2.1.1\tINAPPLICABLE if the selector assignment does not hold\r\n2.1.2\tINAPPLICABLE if the selector assignment hold but the condition does not hold \r\n2.1.3\tThe value specified in Effect if both selector assignment and condition hold  \r\n2.1.4\tINDETERMINATE if the evaluation function fails to compute (e.g. due to undefined attribute values, etc.)    \r\n2.2\t\u2013 an evaluation function of a composite policy is composition of subordinate evaluation functions in accordance to declared policy combination algorithm \r\n\r\nIdeally we should have proper typic and namespace management for policies \r\nIeeally PERMIT, DENY could be values that are specific to authoirzation and in general someon could define values other than PERMIT or DENY as long as policy combination algorithms are updated accordingly.  The only fixed values of desion shoud be inherited from the evaluator constructur definition and be NOT APPLICABLE (meaning skip) and  INDETERMINATE  (meaning undefined) \r\n",
           "createdAt": "2024-11-22T14:18:53Z",
           "updatedAt": "2024-11-22T14:18:53Z"
+        },
+        {
+          "author": "andrewclymer",
+          "authorAssociation": "COLLABORATOR",
+          "body": "What other values do you think there could be other than PERMIT or DENY?",
+          "createdAt": "2024-11-26T17:17:23Z",
+          "updatedAt": "2024-11-26T17:17:23Z"
+        },
+        {
+          "author": "TheoDimitrakos",
+          "authorAssociation": "COLLABORATOR",
+          "body": "\r\n1 For simple and stateless access control, PERMIT or DENY is sufficient. \r\n\r\n2 USAGE CONTROL and STATEFUL  AUTHORIZATION \r\nFor a more general sateful authorizations, there may be other decision options that are used to determine transitions between states. See for example https://dl.acm.org/doi/epdf/10.1145/3532105.3535039   where one can imagine the system to produce different decisions depending on the state and the evaluation of the policy for the applicable state.  For example, if the state is \"collection\" a permission decision would be interpreted as a permission to continue collecting data whereas a \"data collected\" decision would be interpreted as a confirmation of sufficient data been collected and collection obligations about anonymization etc being fullfiled, and allow an update of the state attribute from \"collection\" to \"retention\" . \r\n\r\n[SACMAT2022-3532105.3535039.pdf](https://github.com/user-attachments/files/17932870/SACMAT2022-3532105.3535039.pdf)\r\n\r\n3 PRIVILEGE ASSIGNMENT \r\nIf one wanted to implement privilege management decisions could be associated with capabilities provisioned as opposed to PERMIT or DENY.  \r\n\r\n4 OBLIGATION CLASSIFICATION\r\nAnother case could be if one wants to have policy decisions that are associated with different groups of obligations, it is difficult to characterize those obligation groups with a single policy decision, hence the separation between such groups of obligations are necessary.  One could give \"Limited access\" to requestor or \"Full access\"  depending some polciy combination and environmental attributes. Each of these decissions may implement different obligations or link to different privileges.",
+          "createdAt": "2024-11-27T10:21:55Z",
+          "updatedAt": "2024-11-27T10:32:01Z"
         }
       ]
     },
