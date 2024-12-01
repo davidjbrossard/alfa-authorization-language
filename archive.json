@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-11-28T01:51:16.406342+00:00",
+  "timestamp": "2024-12-01T02:07:05.668490+00:00",
   "repo": "davidjbrossard/alfa-authorization-language",
   "labels": [
     {
@@ -198,7 +198,7 @@
       "labels": [],
       "body": "\r\nThe following obligation assigns the Action attribute to the obligation with the same value as the Action attribute has in the current context.\r\n\r\n```\r\n   on permit\r\n        {\r\n            obligation Audit\r\n            {\r\n                When = CurrentDateTime\r\n                Who = Subject.Email\r\n                Description = \"Accessed the Purchase Order system\"\r\n                Action = Action\r\n            }\r\n        }\r\n```\r\n\r\nSuggest simplifying to\r\n\r\n```\r\n   on permit\r\n        {\r\n            obligation Audit\r\n            {\r\n                When = CurrentDateTime\r\n                Who = Subject.Email\r\n                Description = \"Accessed the Purchase Order system\"\r\n                Action \r\n            }\r\n        }\r\n```\r\n",
       "createdAt": "2024-08-06T15:31:54Z",
-      "updatedAt": "2024-11-21T17:31:17Z",
+      "updatedAt": "2024-11-28T08:29:38Z",
       "closedAt": null,
       "comments": [
         {
@@ -207,6 +207,13 @@
           "body": "Agreed. The annoying thing with advice/obligations is to have to specify the name of the placeholder even when the content itself could be used as the name of the placeholder (Action = Action vs Action).",
           "createdAt": "2024-11-21T17:31:15Z",
           "updatedAt": "2024-11-21T17:31:15Z"
+        },
+        {
+          "author": "TheoDimitrakos",
+          "authorAssociation": "COLLABORATOR",
+          "body": "In general I agree with the principle  of using content itself  as a placeholder where possible but it is not clear to me why and how this can simpify obligations specifically. \r\n\r\nWhat is the syntax of the obligation in this situation and why are  attributes for When, Who, Description and Action are treated  differently. \r\n\r\nDo you assume that Obligation  Audit is defined to have aonly one Action and this Action has value Action?  \r\n\r\nWhat if there were multiple possible asction values assocaited with an oblgiation like  Action acttribute can have values Action1 and Action2 ?   Would that make Action1 and Action2 different placeholders or Aciton placeholder with different values ? \r\n\r\nWould it be \r\n\r\n  on permit\r\n        {\r\n            obligation Audit\r\n            {\r\n                When = CurrentDateTime\r\n                Who = Subject.Email\r\n                Description = \"Accessed the Purchase Order system\"\r\n                Action1  \r\n            }\r\n        }\r\n\r\nor\r\n  \r\non permit\r\n        {\r\n            obligation Audit\r\n            {\r\n                When = CurrentDateTime\r\n                Who = Subject.Email\r\n                Description = \"Accessed the Purchase Order system\"\r\n                Action  = Action1  \r\n            }\r\n        }\r\n",
+          "createdAt": "2024-11-28T08:25:06Z",
+          "updatedAt": "2024-11-28T08:29:38Z"
         }
       ]
     },
@@ -246,7 +253,7 @@
       "labels": [],
       "body": "ALFA, like XACML, has a 3-level structure:\r\n- PolicySet\r\n- Policy\r\n- Rule\r\n\r\nALFA 2.0 aims to simplify into Policy only. Rule and PolicySet are folded into Policy. Combining algorithms are updated accordingly.",
       "createdAt": "2024-08-06T16:11:23Z",
-      "updatedAt": "2024-11-27T10:32:01Z",
+      "updatedAt": "2024-11-29T08:28:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -276,6 +283,13 @@
           "body": "\r\n1 For simple and stateless access control, PERMIT or DENY is sufficient. \r\n\r\n2 USAGE CONTROL and STATEFUL  AUTHORIZATION \r\nFor a more general sateful authorizations, there may be other decision options that are used to determine transitions between states. See for example https://dl.acm.org/doi/epdf/10.1145/3532105.3535039   where one can imagine the system to produce different decisions depending on the state and the evaluation of the policy for the applicable state.  For example, if the state is \"collection\" a permission decision would be interpreted as a permission to continue collecting data whereas a \"data collected\" decision would be interpreted as a confirmation of sufficient data been collected and collection obligations about anonymization etc being fullfiled, and allow an update of the state attribute from \"collection\" to \"retention\" . \r\n\r\n[SACMAT2022-3532105.3535039.pdf](https://github.com/user-attachments/files/17932870/SACMAT2022-3532105.3535039.pdf)\r\n\r\n3 PRIVILEGE ASSIGNMENT \r\nIf one wanted to implement privilege management decisions could be associated with capabilities provisioned as opposed to PERMIT or DENY.  \r\n\r\n4 OBLIGATION CLASSIFICATION\r\nAnother case could be if one wants to have policy decisions that are associated with different groups of obligations, it is difficult to characterize those obligation groups with a single policy decision, hence the separation between such groups of obligations are necessary.  One could give \"Limited access\" to requestor or \"Full access\"  depending some polciy combination and environmental attributes. Each of these decissions may implement different obligations or link to different privileges.",
           "createdAt": "2024-11-27T10:21:55Z",
           "updatedAt": "2024-11-27T10:32:01Z"
+        },
+        {
+          "author": "TheoDimitrakos",
+          "authorAssociation": "COLLABORATOR",
+          "body": "\r\nThe above can be summarized in the following diagram that shows  the simplificaiton from ALFA.1.0 to ALFA.2.0 and the backwards compability through specialziation \r\n\r\n![image](https://github.com/user-attachments/assets/4f14eabb-f6fc-413d-b44d-1f779ebb554d)\r\n\r\n\r\n\r\nThe following comments help clarify the data model diagram.  \r\nI suggest a simpler and more abstract data model where \r\n\r\n(1) ALFA.2.0  tPolicy can optionally have a Condition  - as per Axiomatics ALFA  - and ommitting the condition statement would equate to True and Issuer (that acan also be omitted)  \r\n\r\n(2) Decision can be either Combining Algorithm or Effect (xor). This a specialization that facilitates backwards compatibilty with ALFA.1.0 \r\n\r\n(3)  Action is a generalziation of  Obligation and Advice \r\n\r\nthen we have a simpler data model that has only \r\n\r\nPolicy\r\nAction  \r\n\r\nThen the simple data model specialization for  (backwards compatible) ALFA.1 becomes the same as in Andy's picture where \r\n\r\nAFA1.0 Policy is a specialization of  ALFA.2.0 Policy where \r\n* Issuer is omitted (?) \r\n* Condition is omitted  (hence true) \r\n* Decision is Combining Algorithm\r\n\r\nALFA.1.0 Rule is a specialization of ALFA.2.0 Policy where \r\n* Issuer is omitted \r\n* Decision is Effect  \r\n\r\nALFA.1.0 Obligation is a specialization of  ALFA.2.0 Action (where the expectation is commitment to enforce) \r\n\r\nALFA.1.0 Advice is a specialization of ALFA.2.0 Action (where the expectation is optional to enforce)\r\n",
+          "createdAt": "2024-11-29T08:21:26Z",
+          "updatedAt": "2024-11-29T08:28:11Z"
         }
       ]
     },
