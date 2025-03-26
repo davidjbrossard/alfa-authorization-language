@@ -1,41 +1,241 @@
 grammar Alfa2;
 
-body: NAMESPACE; 
-     
-// Tokens              
-MUSTBEPRESENT : 'mustbepresent';
+alfa returns [Alfa result]
+	: namespace* EOF
+  ;
 
-ON: 'on';
+namespace returns [Namespace result]
+  : NAMESPACE IDENTIFIER LEFTBRACE namespaceBody* RIGHTBRACE
+  ;
+
+namespaceBody 
+  : namespace              # namespaceBodyNamespace
+  | importDeclaration      # namespaceBodyImportDeclaration
+  | attributeDeclaration   # namespaceBodyAttributeDeclaration
+  | obligationDeclaration  # namespaceBodyObligationDeclaration
+  | adviceDeclaration      # namespaceBodyAdviceDeclaration
+  | policySet              # namespaceBodyPolicySet
+  | policy                 # namespaceBodyPolicy
+  ;
+
+importDeclaration 
+  : IMPORT qualifiedName            # singleImport
+  | IMPORT qualifiedName DOT STAR   # starImport
+  ;
+
+qualifiedName 
+  : IDENTIFIER
+  | IDENTIFIER DOT qualifiedName
+  ;
+
+elementName 
+  :                                # elementNameEmpty
+  | IDENTIFIER                     # elementNameSingle
+  ;
+
+policySet 
+  : POLICYSET qualifiedName                                     # policySetRef
+  | POLICYSET elementName LEFTBRACE policySetBody* RIGHTBRACE   # policySetDef
+  ;
+
+policySetBody 
+  : policy                                     # policySetBodyPolicy
+  | policySet                                  # policySetBodyPolicySet
+  | conditionDefinition                        # policySetBodyPolicyCondition
+  | targetDefinition                           # policySetBodyPolicyTarget
+  | APPLY combiningAlgorithm                   # policySetBodyPolicyCombAlg
+  | onEffect                                   # policySetBodyPolicyOnEffect
+  ;
+
+policy  
+  : POLICY qualifiedName                                   # policyRef
+  | POLICY elementName LEFTBRACE policyBodyElement* RIGHTBRACE    # policyDef
+  ;
+
+policyBodyElement
+  : policyRule                                 # policyBodyRule
+  | conditionDefinition                        # policyBodyCondition
+  | targetDefinition                           # policyBodyTarget
+  | APPLY combiningAlgorithm                   # policyBodyCombAlg
+  | onEffect                                   # policyBodyOnEffect
+  ;
+
+policyRule 
+  : RULE qualifiedName                                 # ruleRef
+  | RULE elementName LEFTBRACE ruleBody* RIGHTBRACE    # ruleDef
+  | RULE expr THEN (PERMIT | DENY)                     # ruleInline
+  ;
+
+ruleBody 
+  : conditionDefinition   # ruleBodyCondition
+  | targetDefinition      # ruleBodyTarget
+  | decision              # ruleEffect
+  | onEffect              # ruleOnEffect
+  ;
+
+onEffect 
+  : ON PERMIT LEFTBRACE obligationExpression* RIGHTBRACE  
+  | ON DENY LEFTBRACE obligationExpression* RIGHTBRACE    
+  | ON PERMIT LEFTBRACE adviceExpression* RIGHTBRACE
+  | ON DENY LEFTBRACE adviceExpression* RIGHTBRACE
+  ;
+
+targetDefinition 
+  : TARGET (CLAUSE expr)+
+  ;
+
+conditionDefinition 
+  : CONDITION expr
+  ;
+
+// The operator precedence determined by order of these rules!
+// From the standard:
+// The order is as follow, going from the operators that bind the weakest to the operators that bind the strongest.
+//    • Operators starting with ‘|’. These are right associative.
+//    • Operators starting with ‘&’. These are right associative.
+//    • Operators starting with ‘=’, ‘<’, ‘>’ or ‘$’. These are left associative.
+//    • Operators starting with ‘@’ or ‘^’. These are right associative.
+//    • Operators starting with ‘+’ or ‘-‘. These are left associative.
+//    • Operators starting with ‘*’, ‘/’ or ‘%’. These are left associative.
+// TODO: add more cases
+expr 
+  : attributeDesignator                                             # exprAttributeDesignator
+  | constLit                                                        # exprConst
+  | LEFTPAREN expr RIGHTPAREN                                       # exprParen
+  | NOT expr                                                        # exprNot
+  |<assoc=left > left=expr op=(EQUAL | LESS | GREATER | NOTEQUAL) right=expr   # exprBinOp
+  |<assoc=right> left=expr op=ANDAND right=expr                     # exprBinOp
+  |<assoc=right> left=expr op=OROR right=expr                       # exprBinOp
+  |functionCall                                                     # exprFunc
+  ;
+
+functionCall
+  : IDENTIFIER LEFTBRACKET arguments? RIGHTBRACKET
+  ;
+
+arguments
+  : expr
+  | expr COMMA expr
+  ; 
+attributeDesignator 
+  : qualifiedName                                                   # attributeDesignatorDirect
+  | qualifiedName LEFTBRACKET IDENTIFIER RIGHTBRACKET               # attributeDesignatorWithAttribute
+  ;
+
+value
+  : qualifiedName      # valueQualifiedName
+  | constLit              # valueConst
+  ;
+  
+constLit 
+  : NUMBER                           # constInt
+  | LITERAL_STRING                   # constLITERAL_STRING
+  | BOOL                             # constBool
+  | LITERAL_STRING ':' types         # constTypeCohersion
+  ;
+
+decision 
+  : PERMIT    # decisionPermit
+  | DENY      # decisionDeny
+  ;
+
+combiningAlgorithm 
+  : 'denyOverrides'
+  | 'permitOverrides'
+  | 'firstApplicable'
+  | 'denyUnlessPermit'
+  | 'permitUnlessDeny'
+  ;
+
+adviceExpression
+  : ADVICE id=qualifiedName LEFTBRACE effectInstruction* RIGHTBRACE;
+
+obligationExpression
+  : OBLIGATION id=qualifiedName LEFTBRACE effectInstruction*  RIGHTBRACE;
+  
+
+effectInstruction 
+  : lhs=qualifiedName ASSIGN rhs=value
+  | lhs=qualifiedName
+  ;
+
+attributeDeclaration 
+	: ATTRIBUTE IDENTIFIER LEFTBRACE (attributeProperty)* RIGHTBRACE
+	;
+
+attributeProperty 
+  : TYPE ASSIGN types
+  | CATEGORY ASSIGN IDENTIFIER
+  | ID ASSIGN LITERAL_STRING
+  ;
+
+types
+  :INTEGER
+  | BOOLEAN
+  | DOUBLE
+  | DURATION
+  | MONEY
+  | TIME
+  | DURATION
+  | DATE
+  | DATETIME
+  | IDENTIFIER
+  ;
+
+obligationDeclaration
+  : OBLIGATION IDENTIFIER EQUAL LITERAL_STRING
+  ;
+
+  adviceDeclaration
+   : ADVICE IDENTIFIER EQUAL LITERAL_STRING
+   ;
+
+binOp 
+  : EQUAL
+  | NOTEQUAL
+  | LESS
+  | GREATER
+  | LESSEQUAL
+  | GREATEREQUAL
+  ;
+
+/*
+ * Lexer Rules
+ */
+
+/* General definitions */
+
+fragment LOWERCASE :
+	 [a-z]
+	 ;
+
+fragment UPPERCASE :
+	 [A-Z]
+	 ;
+
+fragment DIGIT :
+	 [0-9]
+	 ;
+
+NUMBER :
+	 DIGIT+ ([.,] DIGIT+)?
+	 ;
+
+COMMA : ',';
+
+BOOL:
+    'true'
+  | 'false'
+  ;
+
+
+/* Keywords */
+
+TYPE : 'type';
+LET: 'let';
 THEN: 'then';
 
-OBLIGATION  : 'obligation';
-ADVICE      : 'advice';
-         
-APPLY       : 'apply';
-POLICY      : 'policy';
-POLICYSET   : 'policyset';
-RULE        : 'rule';
-PERMIT      : 'permit';
-DENY        : 'deny';
-TARGET_CLAUSE: 'target clause';
-CONDITION   : 'condition';
-AND         : '&&';
-OR          : '||';
-FUNCTION    : 'function';
-ASSIGNMENT_OPERATOR : '=';
-OVERLOAD_OPERATOR: '|';
-
-ANDCLAUSE   : 'and';
-ORCLAUSE    : 'or';
-
-IMPORT      : 'import';
-NAMESPACE   : 'namespace';
-ATTRIBUTE   : 'attribute';
-CATEGORY    : 'category';
-ID          : 'id';
-BAG         : 'bag';
 ALL         : 'all';
-TYPE        : 'type';
 STRING      : 'string';
 BOOLEAN     : 'boolean';
 INTEGER     : 'integer';
@@ -46,54 +246,70 @@ TIME        : 'time';
 DURATION    : 'duration';
 MONEY       : 'money';
 MONEY_SUFFIX: 'm';
+IP_ADDRESS: 'ipAddress';
 
-COMBINE_DENY_OVERRIDES : 'denyOverrides';
-COMBINE_PERMIT_OVERRIDES : 'permitOverrides';
-COMBINE_FIRST_APPLICABLE : 'firstApplicable';
-COMBINE_ONLY_ONE_APPLICABLE : 'onlyOne';
-COMBINE_DENY_UNLESS_PERMIT : 'denyUnlessPermit';
-COMBINE_PERMIT_UNLESS_DENY : 'permitUnlessDeny';
-
-LITERAL_STRING : QUOTE ~( '\n' | '\r' | '"' )*  QUOTE
-               | SINGLE_QUOTE ~( '\n' | '\r' | '\'' )* SINGLE_QUOTE;
-
-LITERAL_INTEGER : [0-9]+;
-LITERAL_DOUBLE : [0-9]*'.'[0-9]+;
-LITERAL_TRUE    : 'true';
-LITERAL_FALSE   : 'false';
+CATEGORY :'category';
+ID:'id';
 
 
-LITERAL_TYPE_DESIGNTOR: ':';
-EQUAL : '==';
-NOTEQUAL : '!=';
-GREATERTHAN : '>';
-LESSTHAN : '<';
-GREATERTHANANDEQUAL : '>=';
-LESSTHANANDEQUAL : '<=';
-NOT : 'not';
+APPLY : 'apply';
+NAMESPACE : 'namespace';
+IMPORT : 'import';
+POLICYSET : 'policyset';
+POLICY : 'policy';
+RULE : 'rule';
+PERMIT : 'permit';
+DENY : 'deny';
+TARGET : 'target';
+CLAUSE : 'clause';
+ADVICE : 'advice';
+OBLIGATION : 'obligation';
+ON: 'on';
+CONDITION : 'condition';
+FUNCTION : 'function';
+
+/* Attribute block */
+
+ATTRIBUTE : 'attribute';
+
+DOT : '.';
+
+/* Some Operators */
 PLUS : '+';
 MINUS : '-';
-MULTIPLY : '*';
-DIVIDE : '/';
+DIV : '/';
+STAR : '*';
+LEFTBRACE : '{';
+RIGHTBRACE : '}';
+LEFTBRACKET : '[';
+RIGHTBRACKET : ']';
+LEFTPAREN : '(';
+RIGHTPAREN : ')';
+ASSIGN : '=' ;
+MOD : '%' ;
+AND : '&';
+OR : '|' ;
+NOT : 'not' ;
+LESS : '<' ;
+GREATER : '>';
+CARET : '^' ;
+EQUAL : '==';
+NOTEQUAL : '!=';
+LESSEQUAL : '<=';
+GREATEREQUAL : '>=';
+ANDAND : '&&';
+OROR : '||' ;
+LAND : 'and';
+LOR : 'or' ;
 
-BRACE_OPEN : '{';
-BRACE_CLOSE : '}';
-PAREN_OPEN : '(';
-PAREN_CLOSE : ')';
-SQUAREBRACE_OPEN : '[';
-SQUAREBRACE_CLOSE : ']';
+IDENTIFIER:
+  [A-Za-z_][A-Za-z_0-9]*
+  ;
 
-COMMA: ',';
-                        
-INLINECOMMENT: '//' LITERAL_STRING_BODY -> skip;
-COMMENTBLOCK : '/*' .*? '*/' -> skip;
+LITERAL_STRING:
+  '"' .*? '"'
+  ;
 
-IDENTIFIER  : [a-zA-Z_][a-zA-Z0-9_]*('.'[a-zA-Z_][a-zA-Z0-9_]+)*;
-WILDCARD    : ('.*');
-
-WHITESPACE  : (' ' | '\t')+ -> channel(HIDDEN);
-NEWLINE     : ('\r'? '\n' | '\r')+ -> channel(HIDDEN);
-
-fragment LITERAL_STRING_BODY : ~( '\n' | '\r'  )*;
-fragment QUOTE : '"' ;
-fragment SINGLE_QUOTE : '\'';
+WS: [ \n\t\r]+ -> skip;
+COMMENT: '/*' .*? '*/' -> skip;
+LINE_COMMENT: '//' ~[\r\n]* -> skip;
