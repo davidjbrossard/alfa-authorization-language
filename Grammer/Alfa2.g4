@@ -9,13 +9,16 @@ namespace returns [Namespace result]
   ;
 
 namespaceBody 
-  : namespace              # namespaceBodyNamespace
-  | importDeclaration      # namespaceBodyImportDeclaration
-  | attributeDeclaration   # namespaceBodyAttributeDeclaration
-  | obligationDeclaration  # namespaceBodyObligationDeclaration
-  | adviceDeclaration      # namespaceBodyAdviceDeclaration
-  | policySet              # namespaceBodyPolicySet
-  | policy                 # namespaceBodyPolicy
+  : namespace                         # namespaceBodyNamespace
+  | importDeclaration                 # namespaceBodyImportDeclaration
+  | attributeDeclaration              # namespaceBodyAttributeDeclaration
+  | structuredAttributeDeclaration    # namespaceBodyStructuredAttributeDeclaration
+  | obligationDeclaration             # namespaceBodyObligationDeclaration
+  | adviceDeclaration                 # namespaceBodyAdviceDeclaration
+  | sharedRule                        # namespaceSharedRule
+  | sharedCondition                   # namespaceSharedCondition
+  | policySet                         # namespaceBodyPolicySet
+  | policy                            # namespaceBodyPolicy
   ;
 
 importDeclaration 
@@ -64,6 +67,14 @@ policyRule
   : RULE qualifiedName                                 # ruleRef
   | RULE elementName LEFTBRACE ruleBody* RIGHTBRACE    # ruleDef
   | RULE expr THEN (PERMIT | DENY)                     # ruleInline
+  ;
+
+sharedCondition
+  : CONDITION IDENTIFIER expr                          #sharedConditionDef
+  ;
+
+sharedRule
+  : RULE elementName LEFTBRACE ruleBody* RIGHTBRACE    #sharedRuleDef
   ;
 
 ruleBody 
@@ -198,6 +209,10 @@ binOp
   | LESSEQUAL
   | GREATEREQUAL
   ;
+
+fieldDefinition: IDENTIFIER ':' types; 
+structuredAttributeDeclaration
+   : TYPE IDENTIFIER LEFTBRACE (fieldDefinition)+ RIGHTBRACE;
 
 /*
  * Lexer Rules
