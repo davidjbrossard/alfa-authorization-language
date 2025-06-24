@@ -17,6 +17,7 @@ namespaceBody
   | adviceDeclaration                 # namespaceBodyAdviceDeclaration
   | sharedRule                        # namespaceSharedRule
   | sharedCondition                   # namespaceSharedCondition
+  | letExpression                     # namespaceLetExpression
   | policySet                         # namespaceBodyPolicySet
   | policy                            # namespaceBodyPolicy
   ;
@@ -76,6 +77,9 @@ sharedCondition
 sharedRule
   : RULE elementName LEFTBRACE ruleBody* RIGHTBRACE    #sharedRuleDef
   ;
+
+letExpression
+  : LET elementName ':' types ASSIGN expr;
 
 ruleBody 
   : conditionDefinition   # ruleBodyCondition
