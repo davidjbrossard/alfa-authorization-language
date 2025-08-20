@@ -1,6 +1,6 @@
-# TODO - Your title
+# ALFA 2.0 - Abbreviated Language for Authorization
 
-This is the working area for the individual Internet-Draft, "TODO - Your title".
+This is the working area for the individual Internet-Draft, "ALFA 2.0 - Abbreviated Language for Authorization".
 
 * [Editor's Copy](https://davidjbrossard.github.io/alfa-authorization-language/#go.draft-brossard-alfa-authz.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-brossard-alfa-authz)
