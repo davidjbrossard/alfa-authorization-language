@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-01-30T01:40:09.837663+00:00",
+  "timestamp": "2025-08-21T00:30:43.409069+00:00",
   "repo": "davidjbrossard/alfa-authorization-language",
   "labels": [
     {
@@ -62,9 +62,24 @@
       "labels": [],
       "body": "Repeating the same boolean logic throughout a policy is not only tedious but, from a maintenance perspective, does not scale.\r\n\r\nFrom a runtime perspective, it would be great not to repeat the execution of the same condition across policy decisions. \r\n\r\nConsider the following ALFA\r\n```\r\npolicy doorAccess {\r\n        target clause ResourceType == \"door\" and Action == \"open\"\r\n        apply denyUnlessPermit\r\n\r\n        // Employees can open the door during office hours only\r\n        rule mainDoor {\r\n            target clause Resource == \"mainDoor\"\r\n            permit\r\n            condition Subject.Role == 'employee' and\r\n                      CurrentTime >= \"08:00:00\":time and\r\n                      CurrentTime < \"18:00:00\":time\r\n        }\r\n    }\r\n```\r\n\r\nThe use of office opening hours could be part of a shared condition.\r\n\r\n```\r\n\r\ncondition IsOfficeOpen  CurrentTime >= \"08:00:00\":time &&   CurrentTime < \"18:00:00\":time\r\n\r\npolicy doorAccess {\r\n        target clause ResourceType == \"door\" && Action == \"open\"\r\n        apply denyUnlessPermit\r\n\r\n        // Employees can open the door during office hours only\r\n        rule mainDoor {\r\n            target clause Resource == \"mainDoor\"\r\n            permit\r\n            condition Subject.Role == 'employee' and IsOfficeOpen\r\n        }\r\n    }\r\n```\r\nUsing shared conditions allows the runtime to cache the result of a shared condition. Reducing the execution overhead.\r\n\r\nSome ALFA conditions can look complex, especially when multiple functions are called. The use of shared conditions increases the readability of ALFA and allows a clean separation between developers and policy builders. Developers can create shared conditions, and policy builders can create high-order conditions by combining shared conditions with boolean operators (and, or, not). This results in a form of ALFA that is\r\n\r\n- More readable\r\n- Possibility to execute faster when used multiple times in a policy evaluation\r\n- More maintainable \r\n\r\nThere is an argument to make conditions general-purpose expressions so they can return any result type, not just boolean. Keeping the contract to just boolean expressions creates a level of policy building that does not require deep technical knowledge. If policy conditions were built using shared expressions (return any type), a developer's refactor of the shared expression could break various policies, resulting in an error in the consumer of the shared expression, not in the author of the shared condition. A strong boolean contract prevents this from happening. This is not dissimilar to shared rules, which can only produce a permit or deny.\r\n\r\n\r\n\r\n\r\n",
       "createdAt": "2024-07-23T08:16:01Z",
-      "updatedAt": "2024-07-23T08:16:01Z",
+      "updatedAt": "2025-05-09T05:26:05Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "steven-legg",
+          "authorAssociation": "NONE",
+          "body": "> If policy conditions were built using shared expressions (return any type), a developer's refactor of the shared expression could break various policies\n\nI think that this concern is misplaced. There are various shared definitions that a policy writer could reference: conditions, constants #7, attributes and other policies. The writer takes it on faith that no one is recklessly making changes to any of those things that completely upends their meaning or purpose. What if I change IsOfficeOpen to some other boolean expression that has nothing to do with offices or time of day? At least if someone recklessly changes the return data type of a shared expression it will (hopefully) cause validation errors that reveal there is a problem. A decent PAP could also prevent such a change for an existing shared expression (or a constant, for that matter) that is currently referenced from anywhere. Shared general expressions are much more useful than just shared boolean expressions. Constants are one example.\n\nA condition is an expression that serves a specific purpose in a rule. It is semantically awkward for a condition to contain a nested condition. On the other hand, it's fine for a condition to be, or contain, a shared boolean expression.\n",
+          "createdAt": "2025-05-09T01:20:53Z",
+          "updatedAt": "2025-05-09T01:20:53Z"
+        },
+        {
+          "author": "andrewclymer",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Hi Steven, thanks for your comment\n\nWe have an experiment build that provides a more general expression.\n\nlet isOfficeOpen:boolean CurrentTime >= \"08:00:00\":time &&   CurrentTime < \"18:00:00\":time\n\nlet silverMembership:integer 1\nlet goldMembership:integer silverMembership + 1\nlet platinumMembership:integer silverMembership +1\n\nThis could remove the need for \"shared conditions\", as the let expression is strongly typed.\n\n\n",
+          "createdAt": "2025-05-09T05:26:04Z",
+          "updatedAt": "2025-05-09T05:26:04Z"
+        }
+      ]
     },
     {
       "number": 2,
@@ -118,9 +133,38 @@
       "labels": [],
       "body": "Attributes may contain 0 to many values, known as a bag. When using operators or functions that can only take a single value, the policy author may write less-than-ideal code.\r\n\r\n```\r\ncondition Single(netTotal) + Single(taxTotal) > 100\r\n```\r\n\r\nIdeally, the author would like to write.\r\n```\r\ncondition netTotal + taxTotal > 100\r\n```\r\n\r\n### Suggestions\r\n\r\n#### Attributes defined as single value\r\n\r\nDefine the attribute with a must-have cardinality of 1.\r\n\r\n```\r\nattribute single netTotal { type=double category=resourceCat  }\r\n```\r\n\r\nThis attribute can then be used with operators that take a single value or a bag of values (implicitly converted to a bag of 1). If the attribute has zero values, return an indeterminate decision. \r\n\r\n",
       "createdAt": "2024-07-24T08:29:07Z",
-      "updatedAt": "2024-07-29T14:55:18Z",
+      "updatedAt": "2025-05-12T16:27:07Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "steven-legg",
+          "authorAssociation": "NONE",
+          "body": "### Another Suggestion\n\nThe Entities profile of XACML 3.0 (https://docs.oasis-open.org/xacml/xacml-3.0-related-entities/v1.0/xacml-3.0-related-entities-v1.0.html) supports operations of arbitrary complexity on bags through quantified expressions. In a couple of implementations I've translated simple string expressions like\n```\nnetTotal + taxTotal > 100\n```\nwhere existential quantification is implied, into XACML expressions that use the explicit quantified expressions. An expression like this returns true if there is a value of netTotal and a value of taxTotal which when added together are greater than 100. This strategy assumes all attributes are bags with potentially many values and the expression returns either true or false regardless of how many values each attribute actually has. Exactly one value is just a particular case that is handled naturally. A function like Single() isn't needed, the XACML type-one-and-only functions never get used in the translation and the higher-order bag functions are redundant. The cardinality of the attributes never causes an indeterminate result.\n\nImplicit existential quantification suffices most of the time, but sometimes universal quantification is desired. For that I have an explicit representation, and I created an explicit representation for existential quantification as well anyway. One of the implementations is related to OData and I used a syntax that is present in OData's path-like query language, which would be familiar to OData users. Alternative syntaxes are, of course, possible.\n\nSo\n```\nnetTotal + taxTotal > 100\n```\nis shorthand for (something like)\n```\nnetTotal/any(nt: taxTotal/any(tt: nt + tt > 100))\n```\nwhich I can represent in XACML fairly directly with the ForAny expression.\n\nBTW, the existential quantifier is \"any\" and the universal quantifier is \"all\".\n\n`nt` is a variable that ranges over all the values of `netTotal` and for each such value `tt` is a variable that ranges over all the values of `taxTotal`. `nt` and `tt` are single values at the point where they are added and compared to 100. As soon as we find a combination where `nt + tt > 100` the rightmost `any()` returns true which in turn lets the leftmost `any()` return true. If we don't find such a combination then the whole expression is false.\n\nThe shorthand expression can be arbitrarily complex. I write it like all attributes are single-valued, but it is treated like it is wrapped in a quantified expression for every distinct attribute.\n",
+          "createdAt": "2025-05-09T06:17:17Z",
+          "updatedAt": "2025-05-09T06:17:17Z"
+        },
+        {
+          "author": "andrewclymer",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We can certainly do that\n\nnetTotal {20,30,95}\ntaxTotal {5,10}\n\n\nnetTotal + taxTotal> 100\n\nWould result in \n\n20+5\n20+10\n30+5\n30+10\n95+5\n95+10\n\nThe last expression would return true\n\nAnd if we did allI(netTotal + taxTotal) > 100 then this would return false\n\nDo you have some specific use cases for this?\n\n",
+          "createdAt": "2025-05-09T14:42:39Z",
+          "updatedAt": "2025-05-09T14:42:39Z"
+        },
+        {
+          "author": "steven-legg",
+          "authorAssociation": "NONE",
+          "body": "> Do you have some specific use cases for this?\n\nJust about any attribute I use in an expression. It's nicer to write `username = \"jsmith\"` than `Single(username) = \"jsmith\"` or `any-of(string-equal, username, \"jsmith\")` or `username/any(u: u = \"jsmith\")`.\n\nHowever, example 7.1 in the Entities profile (https://docs.oasis-open.org/xacml/xacml-3.0-related-entities/v1.0/cs03/xacml-3.0-related-entities-v1.0-cs03.html#_Toc54187777), which is a motivating use case for the quantified expressions, is interesting to look at. It is a test whether the product-code attribute contains at least one value in the range 100 to 200. In stringy format with implied existential quantification it is:\n```\nproduct-code >= 100 and product-code <=200\n```\nand with explicit quantification it is:\n```\nproduct-code/any(pc: pc >= 100 and pc <= 200)\n```\n\nThis test can't be expressed in XACML without the ForAny quantified expression.\n\nAny situation in which it is currently necessary to use Single() is also a specific use case. The use case can be extended to bags of values.\n\n---\n\nThe syntax I'm using makes sense for OData but isn't the best otherwise. Instead of\n`username/any(u: u = \"jsmith\")` I'd be more inclined to use something like `any(u in username : u = \"jsmith\")`. The position taken by `username` is some expression resulting in a bag. An attribute designator is a special case.\n",
+          "createdAt": "2025-05-12T07:41:43Z",
+          "updatedAt": "2025-05-12T07:41:43Z"
+        },
+        {
+          "author": "andrewclymer",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thanks, our ALFA compiler can support the username == \"jsmith\" expression. \n\nIt can't support the product-code >=100 and product-code <=200. The policy developer would have to call a function that has a signature \n\nfunction InRange values:bag[integer] min:integer max:integer -> bool\n\n@davidjbrossard does Axomatics have support for this style of expression\n",
+          "createdAt": "2025-05-12T16:27:06Z",
+          "updatedAt": "2025-05-12T16:27:06Z"
+        }
+      ]
     },
     {
       "number": 5,
@@ -134,7 +178,7 @@
       "labels": [],
       "body": "Attributes are bags of single values. \r\n\r\nInteger, double, boolean, string, date, time and dateTime\r\n\r\nScenarios exist that require each attribute bag item to contain multiple values.\r\n\r\nWhen modelling a user's set of specific permissions, having each attribute value contain both an action and the resource to which the action can be applied would be advantageous.\r\n\r\n### Suggestion\r\n\r\n```\r\ntype permission {\r\n  Action:string\r\n  ResourceType:string\r\n}\r\n\r\nattribute userPermissions { type = permission  category=resourceCat}\r\n```\r\nPIPs would then return a bag of values, each containing an Action and a ResourceType.\r\n\r\n\r\n#### Reasoning with complex attributes\r\n\r\nConsider the following ALFA\r\n\r\n```\r\ncondition userPermissions.Action == \"update\" and userPermissions.ResourceType == \"PurchaseOrders\"\r\n```\r\n\r\nWhere the userPersmissions bag is as follows ( Note: this example is shown in JSON, but there is no requirement for an ALFA implementation to serialise/deserialize JSON).\r\n\r\n```\r\n[ { Action:[\"UPDATE\"] , ResourceType:[\"Profile\",\"Photo\"] } ,\r\n  {Action:[\"READ\"],ResourceType[\"PurchaseOrder\"] }\r\n]\r\n```\r\n\r\nThis condition would be evaluated to true, as Permissions has an Action attribute set to UPDATE and a ResourceType Attribute set to PurchaseOrder. The intent is only to produce true if a single instance of the Permissions attribute has Action = \"UPDATE\" and ResourceType = \"PurchaseOrder\"\r\n\r\nTo solve this problem, we could consider the use pattern-matching style syntax\r\n\r\n```\r\ncondition Permissions[Action == \"UPDATE\"].ResourceType == \"PurchaseOrder\"\r\n```\r\n\r\nThe pattern-matching syntax is used to filter the attribute values. The above statement would only evaluate to true if the bag contained an item where the Action was UPDATE and ResourceType is \"PurchaseOrder\"\r\n\r\nMultiple expressions can be contained inside the [ ] operator.\r\n\r\n```\r\ncondition Permissions[Action == \"open\" and ResourceType==\"door\" ].Resource == \"MainDoor\"\r\n```\r\nThe use of [] operator does make ALFA less readable, however, combine this with shared conditions and developers could create a shared condition of CanOpenMainDoor\r\n\r\n```\r\ncondition CanOpenMainDoor Permissions[Action == \"open\" and ResourceType==\"door\" ].Resource == \"MainDoor\"\r\n. . .\r\n\r\npolicy DoorAccess \r\n{\r\n     apply firstApplicable\r\n     target clause ResourceType==\"door\" and Action ==\"open\"\r\n     rule {\r\n      condition CanOpenMainDoor\r\n      permit\r\n    }\r\n}\r\n```\r\n\r\n#### Questions\r\n\r\nDo we allow complex attributes to be made up of other complex attributes? \r\n\r\n",
       "createdAt": "2024-07-28T13:40:14Z",
-      "updatedAt": "2024-11-21T17:45:51Z",
+      "updatedAt": "2025-05-16T05:13:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -143,6 +187,13 @@
           "body": "What I wonder here is how much people will use (and abuse?) this type and stop using primitive types. Or how to correlate primitive types to complex types. Or, finally, how that impacts PIPs.",
           "createdAt": "2024-08-06T15:53:38Z",
           "updatedAt": "2024-08-06T15:53:38Z"
+        },
+        {
+          "author": "steven-legg",
+          "authorAssociation": "NONE",
+          "body": "The Entities profile of XACML 3.0 (https://docs.oasis-open.org/xacml/xacml-3.0-related-entities/v1.0/xacml-3.0-related-entities-v1.0.html) also introduces a structured data type, the entity data type, and the means to extract and process contained fields in either nested or referenced structured entity values. The use case above can be readily supported in XACML.\n\nA value of the entity data type is essentially an attribute category without the category identifier. So it contains a collection of attributes which may in turn have nested entity values themselves. References to related entities are by URI values in an attribute with the anyURI data type. The Entities profile doesn't care about the choice of syntax for representing entity values. Already in XACML 3.0 there are XML and JSON representations corresponding to the protocol representation of categories (minus the category id) in XML and JSON. That will continue for XACML NG. An entity value in a policy written in XML will use the XML representation and in a policy written in JSON will use the JSON representation. ALFA and XACML NG can be aligned if ALFA chooses a representation that is a collection of attributes.\n\nI imagine the request context as a graph of entities linked by references indicating their relationships. The traditional attribute categories are entities in this graph that are nominated by the authorization request to take on specific roles (\"this one is the subject\", \"this one is the resource\", etc.). The nature of an attribute changes in this view. It still has an attribute identifier and a data type, but the category is not intrinsic. The categories are the starting points for building paths through the graph of entities.\n\nI can write an expression in XML that evaluates to true if a single instance of the Permissions attribute has Action = \"UPDATE\" and ResourceType = \"PurchaseOrder\", but if I were to stringify it it would be something like this with explicit quantification:\n```\nany(p in resource/Permission: any(a in p/Action: a = \"UPDATE\") and any(rt in p/ResourceType: rt = \"PurchaseOrder\"))\n```\n\nImplicit existential quantification can be applied to the nested Action and ResourceType attributes:\n```\nany(p in resource/Permission: p/Action = \"UPDATE\" and p/ResourceType = \"PurchaseOrder\")\n```\n\nAnd implicit existential quantification can be applied to the Permission attribute:\n```\nresource/Permission/Action = \"UPDATE\" and resource/Permission/ResourceType = \"PurchaseOrder\"\n```\n\nThe Entities profile has a Select expression that could be used to filter the Permission attribute values on Action value as an alternative. In a stringified syntax it would look something like this with explicit quantification:\n```\nany(s in select(p in resource/Permission: any(a in p/Action: a = \"UPDATE\")): any(rt in s/ResourceType: rt = \"PurchaseOrder\"))\n```\n\nImplicit existential quantification can still be applied to the nested Action and ResourceType attributes:\n```\nany(s in select(p in resource/Permission: p/Action = \"UPDATE\")): s/ResourceType = \"PurchaseOrder\")\n```\n\nAnd implicit existential quantification can be applied to the result of the select expression:\n```\nselect(p in resource/Permission: p/Action = \"UPDATE\"))/ResourceType = \"PurchaseOrder\")\n```\n\nIf `[]` is taken to be shorthand notation for filtering with the Select expression then it could reduce to:\n```\nresource/Permission[Action = \"UPDATE\"]/ResourceType = \"PurchaseOrder\"\n```\n\nThe `/` operator works equally well for nested or referenced entities. There is a difference in the XML but it is unambiguously determined by the data type of the expression on the left-hand side. If it is an entity then the attribute on the right-hand side is extracted from it. If it is anyURI then the identified entity is fetched and the attribute extracted from it.",
+          "createdAt": "2025-05-16T05:13:51Z",
+          "updatedAt": "2025-05-16T05:13:51Z"
         }
       ]
     },
@@ -158,7 +209,7 @@
       "labels": [],
       "body": "ALFA has an attribute type of double, but many platforms have a different type for dealing with currency that has increased precision.\r\n\r\nSuggest introducing a new type in ALFA called money\r\n\r\n```\r\nattribute cost { id=cost type=money category=resourceCat }\r\n```\r\n\r\n\r\n",
       "createdAt": "2024-07-28T20:28:02Z",
-      "updatedAt": "2024-11-21T17:53:13Z",
+      "updatedAt": "2025-05-02T06:32:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -167,6 +218,13 @@
           "body": "Oddly, XACML does not define decimal as one of its datatypes (although xs:decimal is mentioned in the context of XPath). The only numerical datatypes are double and integer. We should add support for decimal at least in ALFA but even suggest to the XACML TC that decimal be added.",
           "createdAt": "2024-11-21T17:53:12Z",
           "updatedAt": "2024-11-21T17:53:12Z"
+        },
+        {
+          "author": "steven-legg",
+          "authorAssociation": "NONE",
+          "body": "I asked about a decimal data type in XACML a long time ago and the answer was that the integer data type could be used with an assumed fixed point, but that's awkward to deal with without help from the PAP. For example, if two decimal places are assumed then 100 * 100 = 100. An extra divide is needed to realign the assumed decimal point after the multiply. An actual decimal data type would be much better.\n\nIf the ALFA 2.0 group really wants it and can round up a posse with pitchforks I can get it done. Of course, data types and functions are extension points in XACML so anyone can define a decimal data type and associated functions.",
+          "createdAt": "2025-05-02T06:32:55Z",
+          "updatedAt": "2025-05-02T06:32:55Z"
         }
       ]
     },
@@ -253,7 +311,7 @@
       "labels": [],
       "body": "ALFA, like XACML, has a 3-level structure:\r\n- PolicySet\r\n- Policy\r\n- Rule\r\n\r\nALFA 2.0 aims to simplify into Policy only. Rule and PolicySet are folded into Policy. Combining algorithms are updated accordingly.",
       "createdAt": "2024-08-06T16:11:23Z",
-      "updatedAt": "2024-11-29T08:28:11Z",
+      "updatedAt": "2025-05-05T00:17:53Z",
       "closedAt": null,
       "comments": [
         {
@@ -290,6 +348,13 @@
           "body": "\r\nThe above can be summarized in the following diagram that shows  the simplificaiton from ALFA.1.0 to ALFA.2.0 and the backwards compability through specialziation \r\n\r\n![image](https://github.com/user-attachments/assets/4f14eabb-f6fc-413d-b44d-1f779ebb554d)\r\n\r\n\r\n\r\nThe following comments help clarify the data model diagram.  \r\nI suggest a simpler and more abstract data model where \r\n\r\n(1) ALFA.2.0  tPolicy can optionally have a Condition  - as per Axiomatics ALFA  - and ommitting the condition statement would equate to True and Issuer (that acan also be omitted)  \r\n\r\n(2) Decision can be either Combining Algorithm or Effect (xor). This a specialization that facilitates backwards compatibilty with ALFA.1.0 \r\n\r\n(3)  Action is a generalziation of  Obligation and Advice \r\n\r\nthen we have a simpler data model that has only \r\n\r\nPolicy\r\nAction  \r\n\r\nThen the simple data model specialization for  (backwards compatible) ALFA.1 becomes the same as in Andy's picture where \r\n\r\nAFA1.0 Policy is a specialization of  ALFA.2.0 Policy where \r\n* Issuer is omitted (?) \r\n* Condition is omitted  (hence true) \r\n* Decision is Combining Algorithm\r\n\r\nALFA.1.0 Rule is a specialization of ALFA.2.0 Policy where \r\n* Issuer is omitted \r\n* Decision is Effect  \r\n\r\nALFA.1.0 Obligation is a specialization of  ALFA.2.0 Action (where the expectation is commitment to enforce) \r\n\r\nALFA.1.0 Advice is a specialization of ALFA.2.0 Action (where the expectation is optional to enforce)\r\n",
           "createdAt": "2024-11-29T08:21:26Z",
           "updatedAt": "2024-11-29T08:28:11Z"
+        },
+        {
+          "author": "steven-legg",
+          "authorAssociation": "NONE",
+          "body": "The XACML TC has already folded PolicySet into Policy for XACML NG (https://github.com/oasis-tcs/xacml-spec/issues/45#issuecomment-2705188749), but haven't considered folding in Rule as well. We have changed Target to be a boolean expression just like Condition. That left Rule with two boolean expressions: Target and Condition. It didn't need both. Since Target and Condition are both boolean expressions we had a discussion about using the same name, Target or Condition, for both and dropping the second expression in Rule. We eventually decided that there was value in keeping Target for Policy and Condition for Rule (drop Target), partly because the consequences of them being true are different in each case. If a Target is true then we evaluate the child policies and rules and combine the results according to the combining algorithm. If a Condition is true then we adopt the Effect as the result.\n\nNow that Target is like Condition, I observe that a Rule with the Permit Effect and some Condition is equivalent to a Policy with the permit-unless-deny combining algorithm, no child policies or rules and the same expression as the rule's Condition for its Target. The Deny Effect would correspond to the deny-unless-permit combining algorithm. So an ALFA 2.0 that didn't have rules could be translated to and from XACML NG which does have rules, with one caveat: the identifiers are disparate. PolicyId is a URI, RuleId is an arbitrary string and ALFA appears to be using a namepsace-qualified simple name.\n\nAn ALFA 2,0 Policy with an issuer would necessarily be translated into an XACML NG Policy. A nested policy that was otherwise suitable could be translated into a Rule.\n\nCombining algorithms are an extension point in XACML so someone could define \"permit\" and \"deny\" combining algorithms that return the corresponding result if the Policy Target is true; NotApplicable otherwise.",
+          "createdAt": "2025-05-02T04:59:23Z",
+          "updatedAt": "2025-05-05T00:17:52Z"
         }
       ]
     },
@@ -345,9 +410,17 @@
       "labels": [],
       "body": "Rename common functions to use developer-friendly names e.g.:\r\n`stringNormalizeToLowerCase` should be renamed to `toLower` or `lower`.\r\n\r\nThe entire list of function names can be found in system.alfa in the ALFA Plugin for VS Code.",
       "createdAt": "2024-11-21T17:23:39Z",
-      "updatedAt": "2024-11-21T17:23:40Z",
+      "updatedAt": "2025-05-02T06:05:57Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "steven-legg",
+          "authorAssociation": "NONE",
+          "body": "One of the things the XACML TC is doing for XACML NG is providing a mechanism for users to define the friendly names for the URIs (not just finctions) they want to use in policies and in the authorization protocol (https://github.com/oasis-tcs/xacml-spec/issues/48) and have them persist through export/import and translations between the different syntactic representations. We could have just defined hard-wired names for the standard URIs like the current JSON profile does, but that leaves out identifiers for attributes, which are the main source of non-standard URIs. I also have some proprietary categories and functions I would like to have short names for.\n\nALFA 2.0 could continue to have predefined short names for standard URIs but you might like to consider freeing that up for ALFA 2.0 users.\n\nThe XACML TC will create a collection of names for the standard URIs, and implementations can use that, or combine it with additional names of their choosing, or ignore it and come up with their own lists. ALFA 2,0 could assume the XACML NG names if they are, or can be made, agreeable. Or ALFA 2.0 can extend the XACML NG standard collection with additional or alternative names. There's nothing stopping a particular URI having more than one short name. Or ALFA 2.0 can just have its own collection. As long as it's known we can translate into XACML NG.\n\nOne thing we haven't decided for the short names is what format they will follow. The only hard requirement is that they don't contain these characters `{ } :`. Everywhere XACML NG would be using them they are between double quotes so we aren't much constrained. If ALFA 2.0 adopts this mechanism then presumably the short names would be unencapsulated so something unambiguously parseable is needed. In the first instance XACML NG will probably just use the trailing ASCII alphanumeric (plus hyphen) identifier of the URIs. I'll let those who can speak languages other than English weigh in on whether that should be expanded to non-ASCII letters, numbers and selected punctuation.\n\nThe main driver for user-defined short names is for attribute identifiers, which is fine for XACML NG where attribute designators still have explicit category, attribute ID and data type URIs. In ALFA 2.0 you fold the three into a single name, so that isn't really a driver for you.",
+          "createdAt": "2025-05-02T06:05:56Z",
+          "updatedAt": "2025-05-02T06:05:56Z"
+        }
+      ]
     },
     {
       "number": 14,
@@ -385,7 +458,7 @@
       "labels": [],
       "body": "![image](https://github.com/user-attachments/assets/a9d856ba-7dcf-47b0-abde-5630c54e26d9)\r\n\r\n**Example**:\r\n\r\n- `map(function[stringNormalizeToLowerCase],user.region)`\r\n- Just do: `lower(user.region)`  Or\u2026 `user.region.toLower()`\r\n",
       "createdAt": "2024-11-21T17:38:34Z",
-      "updatedAt": "2024-11-21T17:44:09Z",
+      "updatedAt": "2025-05-09T07:12:38Z",
       "closedAt": null,
       "comments": [
         {
@@ -394,9 +467,220 @@
           "body": "Also: review higher-order functions and offer reasonably named alternatives and syntactic sugar e.g. `user.region.equals(doc.regions)`",
           "createdAt": "2024-11-21T17:44:07Z",
           "updatedAt": "2024-11-21T17:44:07Z"
+        },
+        {
+          "author": "steven-legg",
+          "authorAssociation": "NONE",
+          "body": "I commented in #4 about implied existential quantification, which removes some of the need for the map function.\n\nAn expression like\n```\nlower(foo) = lower(bar)\n```\nis shorthand for\n```\nfoo/any(f: bar/any(b: lower(f) = lower(b)))\n```\n\nThat said, the XACML Entities profile also has a quantified expression for Map, and implicit mapping is a thing too.\n\nAn isolated expression like\n```\nlower(foo)\n```\ncould be shorthand for\n```\nfoo/map(f: lower(f))\n```\n\nThat would make\n```\nlower(foo) = lower(bar)\n```\nshorthand for the longer\n```\nfoo/map(f: lower(f))/any(lf: bar/map(b: lower(b))/any(lb: lb = lf))\n```\n\nOData doesn't have a map operator, but it's the obvious analogue for the Entities profile Map expression. Similarly a select operator for the Entities profile Select expression.",
+          "createdAt": "2025-05-09T07:12:37Z",
+          "updatedAt": "2025-05-09T07:12:37Z"
         }
       ]
+    },
+    {
+      "number": 16,
+      "id": "I_kwDOMTtPW86z6aIB",
+      "title": "Overload all functions: get rid of typeEquals and replace with overloaded method equals (less than, gt, \u2026)",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/16",
+      "state": "OPEN",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-04-24T20:56:50Z",
+      "updatedAt": "2025-04-24T20:56:50Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 17,
+      "id": "I_kwDOMTtPW86z6aUS",
+      "title": "\"Rename common functions to use developer-friendly names e.g.: stringNormalizeToLowerCase\"",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/17",
+      "state": "OPEN",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-04-24T20:57:19Z",
+      "updatedAt": "2025-04-24T20:57:19Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 18,
+      "id": "I_kwDOMTtPW86z6alK",
+      "title": "Simplify attribute assignment in obligations & advice",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/18",
+      "state": "OPEN",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-04-24T20:57:56Z",
+      "updatedAt": "2025-04-24T20:57:56Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 19,
+      "id": "I_kwDOMTtPW860iTjd",
+      "title": "Namespace import syntax is different between the VS Code Plugin and Enforcer",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/19",
+      "state": "OPEN",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [
+        "andrewclymer"
+      ],
+      "labels": [],
+      "body": "VS Code Plugin\n```\nnamespace greg{\n\n    namespace tx{\n        policy example{\n            apply denyUnlessPermit\n        }\n    }\n}\n\nnamespace notgreg{\n    import greg.*\n    policyset main{\n        apply firstApplicable\n        tx.example\n    }\n}\n```\n\nIn the Enforcer, the `.*` is not needed.",
+      "createdAt": "2025-04-29T16:15:16Z",
+      "updatedAt": "2025-04-29T16:15:28Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 20,
+      "id": "I_kwDOMTtPW862SQ06",
+      "title": "Ambiguous import of infix operators named \"*\"",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/20",
+      "state": "OPEN",
+      "author": "scsibug",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "When writing an import, there is some ambiguity around what happens when the referenced namespace contains an infix operator definition.\n\nThe code below illustrates:  Is the statement `import operators.*` referring to the infix operator `*`, or is it a wildcard import of the `operators` namespace?  The Alfa eclipse plugin handles this as a wildcard import, but that means it is not possible to import the `*` operator alone.  I am not aware that Enforcer allows for defining infix operators, so I don't know this is applicable there.\n\n```\nnamespace operators {\n  infix comm (*) = {\n    \"urn:oasis:names:tc:xacml:1.0:function:integer-multiply\" : integer integer -> integer\n  }\n  infix comm (+++) = {\n    \"urn:oasis:names:tc:xacml:1.0:function:integer-add\" : integer integer -> integer\n  }\n  infix allowbags comm (===) = {\n    \"urn:oasis:names:tc:xacml:1.0:function:integer-equal\" : integer integer -> boolean\n  }\n}\n\nnamespace main {\n  import operators.*\n  policy main {\n    apply firstApplicable\n    rule {\n      permit\n      condition 3 +++ 3 === 6\n    }\n  }\n}\n```",
+      "createdAt": "2025-05-12T21:50:15Z",
+      "updatedAt": "2025-05-12T21:50:15Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 21,
+      "id": "I_kwDOMTtPW87F2-J-",
+      "title": "Support for variables in policy",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/21",
+      "state": "OPEN",
+      "author": "cdanger",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Support the equivalent of XACML VariableDefinition / VariableReference.",
+      "createdAt": "2025-08-13T19:05:05Z",
+      "updatedAt": "2025-08-13T19:05:05Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
-  "pulls": []
+  "pulls": [
+    {
+      "number": 22,
+      "id": "PR_kwDOMTtPW86kRZZh",
+      "title": "Upgraded to v4 of the upload artifact",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/pull/22",
+      "state": "MERGED",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-08-19T10:45:28Z",
+      "updatedAt": "2025-08-19T12:37:54Z",
+      "baseRepository": "davidjbrossard/alfa-authorization-language",
+      "baseRefName": "main",
+      "baseRefOid": "d84ae8d778a3f8af9605090cd900fa57d5c6b023",
+      "headRepository": "davidjbrossard/alfa-authorization-language",
+      "headRefName": "davidjbrossard-upload-v4-upgrade",
+      "headRefOid": "cea74d93ee721c4c8c07655b21b1b6fa881c5702",
+      "closedAt": "2025-08-19T12:37:34Z",
+      "mergedAt": "2025-08-19T12:37:34Z",
+      "mergedBy": "davidjbrossard",
+      "mergeCommit": {
+        "oid": "76b4fc6375fa99f9f5ce795293f3cb00096da6f5"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 23,
+      "id": "PR_kwDOMTtPW86kRbOV",
+      "title": "Update publish.yml",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/pull/23",
+      "state": "MERGED",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-08-19T10:48:17Z",
+      "updatedAt": "2025-08-19T12:36:51Z",
+      "baseRepository": "davidjbrossard/alfa-authorization-language",
+      "baseRefName": "main",
+      "baseRefOid": "d84ae8d778a3f8af9605090cd900fa57d5c6b023",
+      "headRepository": "davidjbrossard/alfa-authorization-language",
+      "headRefName": "davidjbrossard-patch-1",
+      "headRefOid": "a5e717998663f5f36cf2378c681d840797eefc55",
+      "closedAt": "2025-08-19T12:36:39Z",
+      "mergedAt": "2025-08-19T12:36:39Z",
+      "mergedBy": "davidjbrossard",
+      "mergeCommit": {
+        "oid": "d44c17a7e594eba86afe3e2b5f88b6dac96e1212"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOMTtPW866q14w",
+          "commit": {
+            "abbreviatedOid": "ceb9b71"
+          },
+          "author": "copilot-pull-request-reviewer",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "## Pull Request Overview\n\nThis PR updates the GitHub Actions workflow to use a newer version of the `upload-artifact` action.\n\n- Updates `actions/upload-artifact` from v3 to v4\n\n\n\n\n\n---\n\n<sub>**Tip:** Customize your code reviews with copilot-instructions.md. <a href=\"/davidjbrossard/alfa-authorization-language/new/main/.github?filename=copilot-instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Create the file</a> or <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">learn how to get started</a>.</sub>",
+          "createdAt": "2025-08-19T10:59:31Z",
+          "updatedAt": "2025-08-19T10:59:31Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "The upgrade from upload-artifact@v3 to v4 introduces breaking changes. v4 requires explicit artifact names and has different behavior for artifact handling. You should add a 'name' parameter to the 'with' section to ensure compatibility.\n```suggestion\n      with:\n        name: submitted-drafts\n```",
+              "createdAt": "2025-08-19T10:59:31Z",
+              "updatedAt": "2025-08-19T10:59:31Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "id": "PR_kwDOMTtPW86kdC7X",
+      "title": "Update README.md",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/pull/24",
+      "state": "MERGED",
+      "author": "davidjbrossard",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2025-08-20T09:29:44Z",
+      "updatedAt": "2025-08-20T09:29:53Z",
+      "baseRepository": "davidjbrossard/alfa-authorization-language",
+      "baseRefName": "main",
+      "baseRefOid": "76b4fc6375fa99f9f5ce795293f3cb00096da6f5",
+      "headRepository": "davidjbrossard/alfa-authorization-language",
+      "headRefName": "davidjbrossard-patch-1",
+      "headRefOid": "42f0ee9ec10db1569f8a9f5e4d4ac69fd5455260",
+      "closedAt": "2025-08-20T09:29:53Z",
+      "mergedAt": "2025-08-20T09:29:53Z",
+      "mergedBy": "davidjbrossard",
+      "mergeCommit": {
+        "oid": "1b195641434588e6b93fdb9e9b73448972d048c2"
+      },
+      "comments": [],
+      "reviews": []
+    }
+  ]
 }
