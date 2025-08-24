@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-08-21T00:30:43.409069+00:00",
+  "timestamp": "2025-08-24T00:35:37.801581+00:00",
   "repo": "davidjbrossard/alfa-authorization-language",
   "labels": [
     {
@@ -572,6 +572,22 @@
       "body": "Support the equivalent of XACML VariableDefinition / VariableReference.",
       "createdAt": "2025-08-13T19:05:05Z",
       "updatedAt": "2025-08-13T19:05:05Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 25,
+      "id": "I_kwDOMTtPW87HgwqS",
+      "title": "Pattern for rule names/identifiers and attribute Issuer",
+      "url": "https://github.com/davidjbrossard/alfa-authorization-language/issues/25",
+      "state": "OPEN",
+      "author": "cdanger",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Currently, XACML uses the very permissive **xs:string** type for Rule identifiers / names and attribute Issuers. At XACML TC, we are interested to use a more restrictive type and/or pattern (regex), e.g. xs:Name, xs:NCName or at the very least xs:token.\n\n**Have you defined some kind of pattern / syntax for a valid Rule name in ALFA grammar? If not, what would you propose?\nSame question for an attribute Issuer.**\n\nBecause for generating valid XACML policies from ALFA, we need to align to make sure that XACML types/patterns for these are not more restrictive.",
+      "createdAt": "2025-08-23T01:46:40Z",
+      "updatedAt": "2025-08-23T01:47:08Z",
       "closedAt": null,
       "comments": []
     }
