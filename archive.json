@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2025-08-24T00:35:37.801581+00:00",
+  "timestamp": "2025-09-21T00:34:04.228060+00:00",
   "repo": "davidjbrossard/alfa-authorization-language",
   "labels": [
     {
@@ -585,9 +585,9 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "Currently, XACML uses the very permissive **xs:string** type for Rule identifiers / names and attribute Issuers. At XACML TC, we are interested to use a more restrictive type and/or pattern (regex), e.g. xs:Name, xs:NCName or at the very least xs:token.\n\n**Have you defined some kind of pattern / syntax for a valid Rule name in ALFA grammar? If not, what would you propose?\nSame question for an attribute Issuer.**\n\nBecause for generating valid XACML policies from ALFA, we need to align to make sure that XACML types/patterns for these are not more restrictive.",
+      "body": "Currently, XACML uses the very permissive **xs:string** type for Rule identifiers / names and attribute Issuers. At XACML TC, we are considering a more restrictive type and/or pattern (regex) such as: \n`^_?[A-Za-z]([-._]?[A-Za-z0-9]+)*$`\nwhich means the identifier must:\n* start with either a letter, or an underscore followed by a letter, then\n* possibly followed by either \n   1. only letters and/or digits, OR...\n   2. sequences of letters and/or digits, separated by one and only one of these: hypen, dot or underscore . (Ending with one of these three characters is not allowed.)\n\n**Have you defined some kind of pattern / syntax for a valid Rule name in ALFA grammar? If not, what would you propose?\nSame question for an attribute Issuer.**\n\nBecause for generating valid XACML policies from ALFA, we need to align to make sure that XACML types/patterns for these are not more restrictive.\n\n\n",
       "createdAt": "2025-08-23T01:46:40Z",
-      "updatedAt": "2025-08-23T01:47:08Z",
+      "updatedAt": "2025-09-21T00:24:47Z",
       "closedAt": null,
       "comments": []
     }
